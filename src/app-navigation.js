@@ -25,6 +25,10 @@ export const navigation = [
         text: 'Vue Congés',
         path: '/vuecongés'
       },
+      {
+        text: 'Leave Requests',
+        path: '/Statusce'
+      },
       
     ]
   },
@@ -36,6 +40,12 @@ export const navigation = [
         text: 'Vue Congés',
         path: '/vuecongésManager'
       },
+      {
+        text: 'Leave Requests',
+        path: '/Statusm'
+      },
+      
+
       
     ]
   },

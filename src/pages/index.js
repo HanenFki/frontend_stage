@@ -6,3 +6,6 @@ export { default as FormDemande } from './Employe/Form/formDemande';
 export {default as VueConges } from './ChefEquipe/VueConges';
 export {default as VueCongesManager} from './Manager/VueConges';
 export {default as Historique} from './Employe/Historique';
+export {default as Statusm} from './Manager/statusm';
+export {default as Statusce} from './ChefEquipe/Statusce';
+

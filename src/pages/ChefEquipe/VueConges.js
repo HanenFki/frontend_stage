@@ -114,7 +114,7 @@ export default function VueConges() {
   const leavesFiltered = leaves.filter(leave => leave.department === department);
   return (
     <React.Fragment>
-      <h2 className={'content-block'}>Tasks</h2>
+      <h2 className={'content-block'}>Leave History</h2>
 
       <DataGrid
         className={'dx-card wide-card'}
@@ -131,7 +131,7 @@ export default function VueConges() {
 
         <Column
           dataField={'nameemployee'}
-          caption={'Employee Name'}
+          caption={' Name'}
           hidingPriority={3}
         />
         <Column
@@ -154,12 +154,12 @@ export default function VueConges() {
         />
         <Column
           dataField={'periodedebut'}
-          caption={'Period Start'}
+          caption={'Start Periode'}
           hidingPriority={1}
         />
         <Column
           dataField={'periodefin'}
-          caption={'Period End'}
+          caption={'End Periode'}
           hidingPriority={0}
         />
         <Column
@@ -169,7 +169,7 @@ export default function VueConges() {
         />
         <Column
           dataField={'status'}
-          caption={'Statu'}
+          caption={'Status'}
           hidingPriority={1}
         />
       </DataGrid>

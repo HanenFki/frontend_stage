@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 export default function Task() {
   return (
     <React.Fragment>
-      <h2 className={'content-block'}>Tasks</h2>
+      <h2 className={'content-block'}>Leave History</h2>
 
       <DataGrid
         className={'dx-card wide-card'}
@@ -29,7 +29,7 @@ export default function Task() {
 
         <Column 
           dataField={'nameemployee'}
-          caption={'name employee'}
+          caption={'Name'}
           hidingPriority={3}
          />
         <Column
@@ -43,7 +43,7 @@ export default function Task() {
         />
         <Column
           dataField={'endDate'}
-          caption={'Due Date'}
+          caption={'End Date'}
           dataType={'date'}
           hidingPriority={4}
           cellRender={(data) => (
@@ -52,34 +52,34 @@ export default function Task() {
         />
         <Column
           dataField={'periodedebut'}
-          caption={'periodedebut'}
+          caption={'Start Periode'}
           name={'Priority'}
           hidingPriority={1}
         />
          <Column
           dataField={'periodefin'}
-          caption={'periodefin'}
+          caption={'End Periode'}
           hidingPriority={0}
         />
        
         
         <Column
           dataField={'type'}
-          caption={'type'}
+          caption={'Type'}
          
         />
         
         
         <Column
           dataField={'department'}
-          caption={'department'}
+          caption={'Department'}
           allowSorting={false}
           hidingPriority={7}
         />
         <Column
           dataField={'status'}
           width={190}
-          caption={'status'}
+          caption={'Status'}
           
         />
         
@@ -175,7 +175,7 @@ const leaves = [
     periodefin: 'matin'
   },
   {
-      nameemployee: 'm',
+      nameemployee: 'wael',
     id: 4,
     employeeID: 1,
     startDate: new Date('2023-04-10'),

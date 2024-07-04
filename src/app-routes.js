@@ -1,4 +1,4 @@
-import { HomePage, TasksPage, ProfilePage,Agenda,FormDemande,VueConges,VueCongesManager,Historique} from './pages';
+import { HomePage, TasksPage, ProfilePage,Agenda,FormDemande,VueConges,VueCongesManager,Historique,Statusm, Statusce} from './pages';
 import { withNavigationWatcher } from './contexts/navigation';
 
 
@@ -6,6 +6,14 @@ const routes = [
     {
         path: '/tasks',
         element: TasksPage
+    },
+    {
+        path: '/Statusm',
+        element: Statusm
+    },
+    {
+        path: '/Statusce',
+        element: Statusce
     },
     {
         path: '/profile',

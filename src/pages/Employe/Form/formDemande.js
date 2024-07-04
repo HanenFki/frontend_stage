@@ -263,12 +263,13 @@ const FormDemande = () => {
             </div>
           )}
 
-          <Button className='form-buttons'
+          <Button className='form-buttons1'
             text="Submit"
             type="submit"
             useSubmitBehavior={true}
+
           />
-          <Button className='form-buttons'
+          <Button className='form-buttons2'
             text="Reset"
             onClick={onClearButtonClick}
           />

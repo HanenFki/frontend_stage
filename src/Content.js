@@ -21,9 +21,7 @@ export default function Content() {
         />
       </Routes>
       <Footer>
-     
-        <br />
- 
+       
       </Footer>
     </SideNavBarLayout>
   );
