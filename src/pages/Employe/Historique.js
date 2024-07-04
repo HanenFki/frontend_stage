@@ -7,35 +7,33 @@ import DataGrid, {
   FilterRow,
   Lookup
 } from 'devextreme-react/data-grid';
+import { format } from 'date-fns';
 
 export default function Historique() {
-  // Fonction pour obtenir le nom de l'employé à partir de son ID
-const getEmployeeName = (employeeID) => {
-  const employee = employees.find((emp) => emp.id === employeeID);
-  return employee ? employee.text : '';
-};
 
+  const getEmployeeName = (employeeID) => {
+    const employee = employees.find((emp) => emp.id === employeeID);
+    return employee ? employee.text : '';
+  };
 
-  const EmployeeId = 1; // ID de l'employé dont vous voulez afficher les congés
+  const EmployeeId = 1;
   const [collapsed, setCollapsed] = useState(true);
 
-  // Fonction exécutée lorsque le contenu est prêt
   const onContentReady = useCallback(
     (e) => {
       if (collapsed) {
-        e.component.expandRow([EmployeeId.toString()]); // ID de l'employé à développer par défaut
+        e.component.expandRow([EmployeeId.toString()]); 
         setCollapsed(false);
       }
     },
     [collapsed, EmployeeId],
   );
 
-  // Filtrer les congés de l'employé connecté ou sélectionné
   const filteredLeaves = leaves.filter(leave => leave.employeeID === EmployeeId);
 
   return (
     <React.Fragment>
-      <h2 className={'content-block'}>Tasks</h2>
+      <h2 className={'content-block'}>Historique</h2>
 
       <DataGrid
         className={'dx-card wide-card'}
@@ -52,66 +50,65 @@ const getEmployeeName = (employeeID) => {
 
         <Column 
           dataField={'nameemployee'}
-          caption={'name employee'}
+          caption={'Name'}
           hidingPriority={3}
-         />
+        />
         <Column
           dataField={'startDate'}
           caption={'Start Date'}
           dataType={'date'}
           hidingPriority={3}
+          cellRender={(data) => (
+            <span>{format(data.data.startDate, 'dd-MM-yyyy')}</span>
+          )}
         />
         <Column
           dataField={'endDate'}
           caption={'Due Date'}
           dataType={'date'}
           hidingPriority={4}
+          cellRender={(data) => (
+            <span>{format(data.data.endDate, 'dd-MM-yyyy')}</span>
+          )}
         />
         <Column
           dataField={'periodedebut'}
-          caption={'periodedebut'}
+          caption={'Start Period'}
           name={'Priority'}
           hidingPriority={1}
         />
-         <Column
+        <Column
           dataField={'periodefin'}
-          caption={'periodefin'}
+          caption={'End Period'}
           hidingPriority={0}
         />
-       
-        
         <Column
           dataField={'type'}
-          caption={'type'}
-         
+          caption={'Type'}
         />
-        
-        
         <Column
           dataField={'department'}
-          caption={'department'}
+          caption={'Department'}
           allowSorting={false}
           hidingPriority={7}
         />
         <Column
           dataField={'status'}
           width={190}
-          caption={'status'}
-          
+          caption={'Status'}
         />
-        
-        
-        
       </DataGrid>
     </React.Fragment>
-)}
+  );
+}
+
 
 export const leaves = [
   {
     nameemployee:'mahdi',
     id: 1,
     employeeID: 1,
-    startDate: new Date('2023-06-01'),
+    startDate: new Date('2023-12-01'),
     endDate: new Date('2023-06-05'),
     type: 'Annual Leave',
     status: 'Approved',
@@ -129,6 +126,8 @@ export const leaves = [
     type: 'Sick Leave',
     status: 'Approved',
     department: 'HR',
+    periodedebut:'matin',
+    periodefin:'matin',
 
   },
   {
@@ -138,8 +137,10 @@ export const leaves = [
     startDate: new Date('2023-08-12'),
     endDate: new Date('2023-08-15'),
     type: 'Annual Leave',
-    status: 'Approved',
+    status: 'Rejected',
     department: 'Sales',
+    periodedebut:'aprés midi',
+    periodefin:'matin',
 
   },
   {
@@ -151,11 +152,12 @@ export const leaves = [
     type: 'Annual Leave',
     status: 'Rejected',
     department: 'Sales',
+    periodedebut:'matin',
+    periodefin:'aprés midi',
 
 
 
     },
-  // autres demandes de congés
 ];
 
 
@@ -176,7 +178,6 @@ export const employees = [
     age: 25,
     department: 'HR',
   },
-  // autres employés
 ];
 export const employee = [
   {

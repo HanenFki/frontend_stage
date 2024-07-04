@@ -18,17 +18,17 @@ const ToggleButton = ({ onToggle }) => {
   };
 
   return (
-    <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '5px', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', border: '1px solid #000f31', borderRadius: '5px', overflow: 'hidden' }}>
       <button
         type="button" 
         onClick={handleMorningClick}
         style={{
-          backgroundColor: isMorningSelected ? '#007bff' : '#ccc',
+          backgroundColor: isMorningSelected ? '#d35100' : '#000f31',
           color: 'white',
           flex: 1,
           border: 'none',
           padding: '10px',
-          cursor: 'pointer'
+          cursor: 'pointer',
         }}
       >
         Matin
@@ -37,12 +37,13 @@ const ToggleButton = ({ onToggle }) => {
         type="button" 
         onClick={handleAfternoonClick}
         style={{
-          backgroundColor: isMorningSelected ? '#ccc' : '#007bff',
+          backgroundColor: isMorningSelected ? '#000f31' : '#d35100',
           color: 'white',
           flex: 1,
           border: 'none',
           padding: '10px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+           width :'150px'
         }}
       >
         Après-midi

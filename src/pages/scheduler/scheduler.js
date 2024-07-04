@@ -4,16 +4,7 @@ import { employeeData, resourcesData } from './data.js';
 
 const currentDate = new Date(2021, 2, 25);
 const views = [
-  {
-    type: 'month',
-    name: 'Auto Mode',
-    maxAppointmentsPerCell: 'auto',
-  },
-  {
-    type: 'month',
-    name: 'Unlimited Mode',
-    maxAppointmentsPerCell: 'unlimited',
-  },
+  
   {
     type: 'month',
     name: 'Numeric Mode',

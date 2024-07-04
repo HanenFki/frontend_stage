@@ -6,6 +6,8 @@ import DataGrid, {
   Paging,
   FilterRow
 } from 'devextreme-react/data-grid';
+import { format } from 'date-fns';
+
 
 export default function VueConges() {
   const employees = [
@@ -137,12 +139,18 @@ export default function VueConges() {
           caption={'Start Date'}
           dataType={'date'}
           hidingPriority={3}
+          cellRender={(data) => (
+            <span>{format(data.data.startDate, 'dd-MM-yyyy')}</span>
+          )}
         />
         <Column
           dataField={'endDate'}
           caption={'End Date'}
           dataType={'date'}
           hidingPriority={4}
+          cellRender={(data) => (
+            <span>{format(data.data.endDate, 'dd-MM-yyyy')}</span>
+          )}
         />
         <Column
           dataField={'periodedebut'}

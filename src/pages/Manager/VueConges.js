@@ -7,6 +7,7 @@ import DataGrid, {
   FilterRow,
   Lookup
 } from 'devextreme-react/data-grid';
+import { format } from 'date-fns';
 
 export default function Task() {
   return (
@@ -36,12 +37,18 @@ export default function Task() {
           caption={'Start Date'}
           dataType={'date'}
           hidingPriority={3}
+          cellRender={(data) => (
+            <span>{format(data.data.startDate, 'dd-MM-yyyy')}</span>
+          )}
         />
         <Column
           dataField={'endDate'}
           caption={'Due Date'}
           dataType={'date'}
           hidingPriority={4}
+          cellRender={(data) => (
+            <span>{format(data.data.endDate, 'dd-MM-yyyy')}</span>
+          )}
         />
         <Column
           dataField={'periodedebut'}

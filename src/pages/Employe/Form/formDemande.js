@@ -1,11 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import SelectBox from 'devextreme-react/select-box';
 import Calendar from 'devextreme-react/calendar';
 import ToggleButton from './toogle';
 import { leaveTypes } from './data';
 import AlertComponent from './alertBox';
+import { Button } from 'devextreme-react/button';
+
+import DateBox from 'devextreme-react/date-box';
+import { format } from 'date-fns';
 import './style.css';
+
 const weekendOptions = [
   { value: 'saturday-sunday', label: 'Samedi et Dimanche' },
   { value: 'sunday', label: 'Dimanche seulement' }
@@ -15,11 +19,7 @@ const msInDay = 1000 * 60 * 60 * 24;
 const today = new Date();
 const initialValue = [today, new Date(today.getTime() + msInDay)];
 
-const formatDate = (date) => {
-  const offset = date.getTimezoneOffset();
-  const adjustedDate = new Date(date.getTime() - offset * 60 * 1000);
-  return adjustedDate.toISOString().split('T')[0];
-};
+
 
 const FormDemande = () => {
   const [selectWeekOnClick, setSelectWeekOnClick] = useState(true);
@@ -35,7 +35,6 @@ const FormDemande = () => {
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [formData, setFormData] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
-
 
   const isDateDisabled = useCallback(({ date }) => {
     const day = date.getDay();
@@ -111,25 +110,25 @@ const FormDemande = () => {
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
+  
+    if (!selectedLeaveType) {
+      alert("Veuillez sélectionner un type de congé.");
+      return;
+    }
+  
     const data = {
       selectedLeaveType,
       selectedSubtype,
-      startDate,
-      endDate,
+      startDate: new Date(startDate), 
+      endDate: new Date(endDate),
       startPeriod,
       endPeriod,
-      setStartDate,
-      setEndDate,
-      setStartPeriod,
-      setEndPeriod,
-      setSelectedLeaveType,
-      setSelectedSubtype,
-      setShowFileUpload,
     };
-
+  
     setFormData(data);
-    setShowAlert(true); 
+    setShowAlert(true);
   }, [selectedLeaveType, selectedSubtype, startDate, endDate, startPeriod, endPeriod]);
+  
 
   const handleAlertClose = () => {
     setShowAlert(false);
@@ -139,7 +138,6 @@ const FormDemande = () => {
   const handleModify = () => {
     setShowAlert(false); 
   };
-
 
   const onClearButtonClick = () => {
     setStartDate(today);
@@ -175,47 +173,48 @@ const FormDemande = () => {
 
   return (
     <div className='content-block'>
-      <div className="image-container">
-        <img src="/Conges_payes.jpg" alt="Demande de congé" />
-        <h2>Demande de congé</h2>
-      </div>
+    
+      <h2>Demande de congé</h2>
+     
+       
+      
       <div className="form-container">
         <form onSubmit={handleSubmit}>
           <div className="form-group date-and-toggle">
             <div className="date-fields">
-              <label htmlFor="startDate">Date de début :</label>
-              <input
-                type="date"
+              <label htmlFor="startDate">Start Date</label>
+              <DateBox
                 id="startDate"
-                value={startDate ? formatDate(startDate) : ''}
-                min={formatDate(today)}
-                onChange={(e) => {
-                  const newStartDate = new Date(e.target.value);
+                type="date"
+                value={startDate}
+                displayFormat="dd-MM-yyyy"
+                min={today}
+                onValueChanged={(e) => {
+                  const newStartDate = e.value;
                   setStartDate(newStartDate);
                   if (newStartDate > endDate) {
                     setEndDate(newStartDate);
                   }
                 }}
               />
-              <label htmlFor="endDate">Date de fin :</label>
-              <input
-                type="date"
+              <label htmlFor="endDate">End Date</label>
+              <DateBox
                 id="endDate"
-                value={endDate ? formatDate(endDate) : ''}
-                min={formatDate(startDate)}
-                onChange={(e) => setEndDate(new Date(e.target.value))}
+                type="date"
+                value={endDate}
+                displayFormat="dd-MM-yyyy"
+                min={startDate}
+                onValueChanged={(e) => setEndDate(e.value)}
               />
             </div>
             <div className="toggle-buttons">
               <ToggleButton
                 value={startPeriod}
                 onToggle={handleStartTimeToggle}
-               
               />
               <ToggleButton
                 value={endPeriod}
                 onToggle={handleEndTimeToggle}
-               
               />
             </div>
             <div className="calendar-container">
@@ -243,39 +242,47 @@ const FormDemande = () => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="leaveType">Type de congé :</label>
+          <div className="select">
+            <label htmlFor="leaveType">Type</label>
             <SelectBox
               id="leaveType"
               dataSource={leaveTypes}
-           
               valueExpr="id"
-              value={selectedLeaveType ? selectedLeaveType.id : undefined}
-              displayExpr={(item) => item ? `${item.name} ${item.nbjour ? `(${item.nbjour} jours)` : ''}` : ''}
-
+              value={selectedLeaveType ? selectedLeaveType.id : null}
+              displayExpr={(item) => item ? `${item.name}${item.nbjour ? ` (${item.nbjour} jours)` : ''}` : ''}
               onValueChanged={(e) => handleLeaveTypeChange(e.value)}
             />
           </div>
-
+          
           {renderSubtypesSelect()}
 
           {showFileUpload && (
             <div className="form-group">
-              <label htmlFor="fileUpload">Justificatif :</label>
+              <label htmlFor="fileUpload">Télécharger un fichier :</label>
               <input type="file" id="fileUpload" />
             </div>
           )}
 
-          <div className="form-buttons">
-            <button type="submit">Soumettre</button>
-            <button type="button" onClick={onClearButtonClick}>Effacer</button>
-          </div>
+          <Button className='form-buttons'
+            text="Submit"
+            type="submit"
+            useSubmitBehavior={true}
+          />
+          <Button className='form-buttons'
+            text="Reset"
+            onClick={onClearButtonClick}
+          />
         </form>
       </div>
+      {showAlert && formData && (
+  <AlertComponent
+    message="Votre demande a été soumise !"
+    onClose={handleAlertClose}
+    onModify={handleModify}
+    formData={formData}
+  />
+)}
 
-      {showAlert && (
-        <AlertComponent formData={formData} onClose={handleAlertClose} onModify={handleModify} />
-      )}
     </div>
   );
 };
