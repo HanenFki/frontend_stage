@@ -10,6 +10,8 @@ import { AuthProvider, useAuth } from './contexts/auth';
 import { useScreenSizeClass } from './utils/media-query';
 import Content from './Content';
 import UnauthenticatedContent from './UnauthenticatedContent';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
 
 function App() {
   const { user, loading } = useAuth();

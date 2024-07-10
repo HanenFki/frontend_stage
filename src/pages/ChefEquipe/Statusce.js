@@ -114,22 +114,31 @@ export default function Task() {
         <Column dataField={'periodefin'} caption={'End Periode'} hidingPriority={0} />
         <Column dataField={'type'} caption={'Type'} />
         <Column dataField={'department'} caption={'Department'} allowSorting={false} hidingPriority={7} />
-        <Column
+ 
+ <Column
           dataField={'status'}
           width={190}
           caption={'Status'}
+          cellRender={({ data }) => (
+            <span>{data.status}</span>
+          )}
+        />
+        
+        <Column
+          caption={'Actions'}
+          width={200}
           cellRender={({ data }) => (
             <div>
               {data.status === 'Pending' ? (
                 <div>
                   <Button
-                    text="Approve"
-                    type="default"
+                    icon="check"
+                    color="green"
                     onClick={() => onStatusChange(data.id, 'Approved')}
                   />
                   <Button
-                    text="Reject"
-                    type="default"
+                    icon="remove"
+                    color="danger"
                     onClick={() => showRejectPopup(data.id)}
                   />
                 </div>
@@ -139,13 +148,14 @@ export default function Task() {
             </div>
           )}
         />
+
+       
       </DataGrid>
 
       <Popup
         visible={popupVisible}
         onHiding={() => setPopupVisible(false)}
         dragEnabled={false}
-        closeOnOutsideClick={true}
         showTitle={true}
         title="Reject Leave"
         width={300}

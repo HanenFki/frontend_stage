@@ -1,10 +1,9 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import ContextMenu, { Position } from 'devextreme-react/context-menu';
 import List from 'devextreme-react/list';
 import { useAuth } from '../../contexts/auth';
 import './UserPanel.scss';
-
 
 export default function UserPanel({ menuMode }) {
   const { user, signOut } = useAuth();
@@ -13,6 +12,7 @@ export default function UserPanel({ menuMode }) {
   const navigateToProfile = useCallback(() => {
     navigate("/profile");
   }, [navigate]);
+
   const menuItems = useMemo(() => ([
     {
       text: 'Profile',
@@ -24,10 +24,15 @@ export default function UserPanel({ menuMode }) {
       icon: 'runner',
       onClick: signOut
     }
+    
   ]), [navigateToProfile, signOut]);
+
+  
+
   return (
     <div className={'user-panel'}>
       <div className={'user-info'}>
+        
         <div className={'image-container'}>
           <div
             style={{
@@ -36,7 +41,10 @@ export default function UserPanel({ menuMode }) {
             }}
             className={'user-image'} />
         </div>
-        <div className={'user-name'}>{user.email}</div>
+        <div className={'user-details'}>
+          <div className={'user-name'}>{user.email}</div>
+     
+        </div>
       </div>
 
       {menuMode === 'context' && (

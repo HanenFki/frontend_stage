@@ -119,19 +119,27 @@ export default function Task() {
           width={190}
           caption={'Status'}
           cellRender={({ data }) => (
+            <span>{data.status}</span>
+          )}
+        />
+        <Column
+          caption={'Actions'}
+          width={200}
+          cellRender={({ data }) => (
             <div>
               {data.status === 'Pending' ? (
                 <div>
                   <Button
-                    text="Approve"
-                    type="default"
+                    icon="check"
+                    color="green"
                     onClick={() => onStatusChange(data.id, 'Approved')}
                   />
                   <Button
-                    text="Reject"
-                    type="default"
-                    onClick={() => showRejectPopup(data.id)}
-                  />
+  icon="remove"
+  style={{ color: "orange" }}
+  onClick={() => showRejectPopup(data.id)}
+/>
+
                 </div>
               ) : (
                 <span>{data.status}</span>

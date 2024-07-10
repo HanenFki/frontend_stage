@@ -1,0 +1,145 @@
+/* style.css */
+
+.popup-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.column-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  gap: 20px; /* Adding space between columns */
+}
+
+.left-column, .right-column {
+  flex: 1;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.form-group {
+  margin-bottom: 20px; /* Adding more space between form groups */
+}
+
+.field-with-toggle {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Adding space between date fields and toggle buttons */
+}
+
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block; /* Ensure label is on a separate line */
+}
+
+input[type="text"],
+select,
+.dx-datebox,
+.dx-selectbox {
+  width: 100%;
+  max-width: 200px; /* Set a maximum width for date and select fields */
+  margin-bottom: 10px; /* Space between field and its label */
+  height: 45px;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.submit-button, .clear-button {
+  padding: 10px 20px;
+  margin-right: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.clear-button {
+  background-color: #dc3545;
+}
+
+.submit-button:hover, .clear-button:hover {
+  opacity: 0.8;
+}
+
+.dx-toggle-button {
+  margin-left: 10px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+  height: 70px;
+}
+
+.dx-toggle-button.selected {
+  background-color: #ffa500; /* Change color when selected */
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .column-container {
+    flex-direction: column;
+  }
+
+  .left-column, .right-column {
+    width: 100%;
+  }
+}
+
+.form-buttons1  {
+  padding: 12px 24px;
+  margin-right: 10px;
+  margin-top: 30px; 
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background-color: #000f31;
+  color: #ffffff;
+  outline: none;
+  margin-left: 600px;
+}
+
+.form-buttons2  {
+  padding: 12px 24px;
+  margin-right: 10px; 
+  margin-top: 30px; 
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background-color: #000f31;
+  color: #ffffff;
+  outline: none;
+}
+
+.toggle-button-option {
+  padding: 10px 20px; 
+  border: 1px solid #ddd;
+  cursor: pointer;
+  border-radius: 0; 
+  background-color: #002345;
+  color: #fff;
+  margin: -1; 
+}
+
+.toggle-button-option.selected {
+  background-color: #b12600;
+  color: #fff;
+}

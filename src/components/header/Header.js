@@ -1,10 +1,11 @@
+// Header.jsx
 import React from 'react';
 import Toolbar, { Item } from 'devextreme-react/toolbar';
 import Button from 'devextreme-react/button';
 import UserPanel from '../user-panel/UserPanel';
 import './Header.scss';
+import NotificationIcon from '../notif/notification';
 import { Template } from 'devextreme-react/core/template';
-
 
 export default function Header({ menuToggleEnabled, title, toggleMenu }) {
   return (
@@ -24,10 +25,15 @@ export default function Header({ menuToggleEnabled, title, toggleMenu }) {
           text={title}
           visible={!!title}
         />
+           <Item
+          location={'after'}
+          cssClass={'notification-icon-container'}
+        >
+          <NotificationIcon count={3}  />
+        </Item>
         <Item
           location={'after'}
           locateInMenu={'auto'}
-          menuItemTemplate={'userPanelTemplate'}
         >
           <Button
             className={'user-button authorization'}
@@ -38,9 +44,11 @@ export default function Header({ menuToggleEnabled, title, toggleMenu }) {
             <UserPanel menuMode={'context'} />
           </Button>
         </Item>
+    
         <Template name={'userPanelTemplate'}>
           <UserPanel menuMode={'list'} />
         </Template>
       </Toolbar>
     </header>
-)}
+  );
+}

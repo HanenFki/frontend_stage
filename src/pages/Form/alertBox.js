@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { format } from 'date-fns'; 
 
 const AlertComponent = ({ formData, onClose, onModify }) => {
-  const leaveTypeName = formData.selectedLeaveType ? formData.selectedLeaveType.name : '';
-  const subtypeName = formData.selectedSubtype ? formData.selectedSubtype.name : '';
-  const [showSubmitAlert, setShowSubmitAlert] = useState(false);
+  const leaveTypeName = formData?.selectedLeaveType?.name || '';
+  const subtypeName = formData?.selectedSubtype?.name || '';
+  const [showSubmitAlert, setShowSubmitAlert] = React.useState(false);
 
-  // Fonction pour formater une date en 'dd-MM-yyyy'
+  // Function to format a date as 'dd-MM-yyyy'
   const formatDate = (date) => {
     if (date instanceof Date) {
       return format(date, 'dd-MM-yyyy');
@@ -14,23 +14,26 @@ const AlertComponent = ({ formData, onClose, onModify }) => {
     return '';
   };
 
-  // Affiche l'alerte de soumission
+  // Show the submission alert
   const handleSend = () => {
     setShowSubmitAlert(true);
   };
 
-  // Cache l'alerte de soumission et appelle onClose
+  // Hide the submission alert and call onClose
   const handleSendConfirm = () => {
     setShowSubmitAlert(false);
     onClose();
   };
 
-  // Cache l'alerte de soumission et appelle onModify
+  // Hide the submission alert and call onModify
   const handleModify = () => {
     setShowSubmitAlert(false);
     onModify();
   };
 
+  if (!formData) {
+    return null; // Handle case where formData is null or undefined
+  }
 
   return (
     <div className="alert-container">
@@ -41,11 +44,12 @@ const AlertComponent = ({ formData, onClose, onModify }) => {
       <p><strong>Période de fin :</strong> {formData.endPeriod}</p>
       <p>Type de congé : {leaveTypeName}</p>
       {subtypeName && <p>Sous-type : {subtypeName}</p>}
+      <p><strong>Explication:</strong> {formData.explanation}</p>
       <div className="alert-buttons">
         <button onClick={handleSend}>Envoyer</button>
         <button onClick={handleModify}>Modifier</button>
       </div>
-
+     
       {showSubmitAlert && (
         <div className="custom-alert">
           <p>Votre demande a été soumise !</p>

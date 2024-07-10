@@ -1,5 +1,5 @@
 const appInfo = {
-    title: 'DevExtreme App'
+    title: 'Leave management system'
 };
 export default appInfo;
 
