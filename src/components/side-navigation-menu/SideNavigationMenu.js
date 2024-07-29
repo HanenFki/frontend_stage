@@ -1,39 +1,29 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import TreeView from 'devextreme-react/tree-view';
-import { navigation } from '../../app-navigation';
 import { useNavigation } from '../../contexts/navigation';
 import { useScreenSize } from '../../utils/media-query';
 import './SideNavigationMenu.scss';
-
-
 import * as events from 'devextreme/events';
+import { useNavigate } from 'react-router-dom';
 
-export default function SideNavigationMenu(props) {
-  const {
-    children,
-    selectedItemChanged,
-    openMenu,
-    compactMode,
-    onMenuReady
-  } = props;
-
+const SideNavigationMenu = ({ children, openMenu, compactMode, onMenuReady }) => {
   const { isLarge } = useScreenSize();
-  function normalizePath () {
-    return navigation.map((item) => (
-      { ...item, expanded: isLarge, path: item.path && !(/^\//.test(item.path)) ? `/${item.path}` : item.path }
-    ))
-  }
+  const { navigation } = useNavigation();
+  const navigate = useNavigate();
 
-  const items = useMemo(
-    normalizePath,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  const normalizePath = () => {
+    return navigation.map((item) => ({
+      ...item,
+      expanded: isLarge,
+      path: item.path && !(/^\//.test(item.path)) ? `/${item.path}` : item.path,
+    }));
+  };
 
-  const { navigationData: { currentPath } } = useNavigation();
+  const items = normalizePath();
 
   const treeViewRef = useRef(null);
   const wrapperRef = useRef();
+
   const getWrapperRef = useCallback((element) => {
     const prevElement = wrapperRef.current;
     if (prevElement) {
@@ -41,32 +31,36 @@ export default function SideNavigationMenu(props) {
     }
 
     wrapperRef.current = element;
-    events.on(element, 'dxclick', (e) => {
-      openMenu(e);
-    });
+    if (element) {
+      events.on(element, 'dxclick', (e) => {
+        console.log('Click event:', e);
+        if (typeof openMenu === 'function') {
+          openMenu(e);
+        } else {
+          console.error('openMenu is not a function');
+        }
+      });
+    }
   }, [openMenu]);
+
+  const onItemClick = (e) => {
+    const item = e.itemData;
+    if (item.path) {
+      navigate(item.path);
+    }
+  };
 
   useEffect(() => {
     const treeView = treeViewRef.current && treeViewRef.current.instance;
-    if (!treeView) {
-      return;
-    }
-
-    if (currentPath !== undefined) {
-      treeView.selectItem(currentPath);
-      treeView.expandItem(currentPath);
-    }
+    if (!treeView) return;
 
     if (compactMode) {
       treeView.collapseAll();
     }
-  }, [currentPath, compactMode]);
+  }, [compactMode]);
 
   return (
-    <div
-      className={'dx-swatch-additional side-navigation-menu'}
-      ref={getWrapperRef}
-    >
+    <div className={'dx-swatch-additional side-navigation-menu'} ref={getWrapperRef}>
       {children}
       <div className={'menu-container'}>
         <TreeView
@@ -76,11 +70,13 @@ export default function SideNavigationMenu(props) {
           selectionMode={'single'}
           focusStateEnabled={false}
           expandEvent={'click'}
-          onItemClick={selectedItemChanged}
+          onItemClick={onItemClick}
           onContentReady={onMenuReady}
           width={'100%'}
         />
       </div>
     </div>
   );
-}
+};
+
+export default SideNavigationMenu;

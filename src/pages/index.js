@@ -7,5 +7,5 @@ export {default as VueConges } from './ChefEquipe/VueConges';
 export {default as VueCongesManager} from './Manager/VueConges';
 export {default as Historique} from './Employe/Historique';
 export {default as Statusm} from './Manager/statusm';
-export {default as Statusce} from './ChefEquipe/Statusce';
-
+export {default as History} from './Manager/History';
+export {default as MyHistory} from './ChefEquipe/myHistory';

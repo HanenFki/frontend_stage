@@ -1,20 +1,14 @@
-import { HomePage, TasksPage, ProfilePage,Agenda,FormDemande,VueConges,VueCongesManager,Historique,Statusm, Statusce} from './pages';
+import { HomePage, TasksPage, ProfilePage,Agenda,FormDemande,VueConges,VueCongesManager,Historique,Statusm,MyHistory,History} from './pages';
 import { withNavigationWatcher } from './contexts/navigation';
 
 
-const routes = [
+export  const routes = [
     {
         path: '/tasks',
         element: TasksPage
     },
-    {
-        path: '/Statusm',
-        element: Statusm
-    },
-    {
-        path: '/Statusce',
-        element: Statusce
-    },
+  
+    
     {
         path: '/profile',
         element: ProfilePage
@@ -23,7 +17,10 @@ const routes = [
         path: '/scheduler',
         element: Agenda
     },
- 
+    {
+        path: '/historyMng',
+        element: History
+    },
     {
         path: '/formDemande',
         element: FormDemande
@@ -40,6 +37,10 @@ const routes = [
         path: '/historique',
         element: Historique
     },
+    {
+        path: '/history',
+        element: MyHistory
+    },
     
     
 
@@ -51,3 +52,4 @@ export default routes.map(route => {
         element: withNavigationWatcher(route.element, route.path)
     };
 });
+

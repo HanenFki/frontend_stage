@@ -1,127 +1,198 @@
 import React, { useState } from 'react';
+import 'devextreme/data/odata/store';
+import DataGrid, {
+  Column,
+  Pager,
+  Paging,
+  FilterRow
+} from 'devextreme-react/data-grid';
 import { format } from 'date-fns';
 import { Button } from 'devextreme-react/button';
-import DataGrid, { Column, Pager, Paging, FilterRow } from 'devextreme-react/data-grid';
 import { Popup } from 'devextreme-react/popup';
-import ExplanationForm from './ExplanationForm';
+import ExplanationForm from '../Employe/ExplanationForm';
 
 import FormDemande from '../Form/formDemande';
-
+const employees = [
+  {
+    name: 'John Heart',
+    id: 1,
+    color: '#56ca85',
+    avatar: 'images/gym/coach-man.png',
+    age: 27,
+    department: 'Sales',
+    fonction: 'Employe'
+  },
+  {
+    name: 'Sandra Johnson',
+    id: 2,
+    color: '#ff9747',
+    avatar: 'images/gym/coach-woman.png',
+    age: 25,
+    department: 'HR',
+    fonction: 'Manager'
+  },
+  {
+    name: 'Hanen',
+    id: 3,
+    color: '#ff9747',
+    avatar: 'images/gym/coach-woman.png',
+    age: 25,
+    department: 'Sales',
+    fonction: 'Employe'
+  },
+  {
+    name: 'Mahdi',
+    id: 4,
+    color: '#ff9747',
+    avatar: 'images/gym/coach-woman.png',
+    age: 25,
+    department: 'Sales',
+    fonction: 'Employe'
+  },
+  {
+    name: 'Firas',
+    id: 6,
+    color: '#ff9747',
+    avatar: 'images/gym/coach-woman.png',
+    age: 25,
+    department: 'Sales',
+    fonction: 'Chef'
+  }
+];
 
 const initialLeaves = [
   {
-    nameemployee:'mahdi',
+    nameemployee: 'mahdi',
     id: 1,
     employeeID: 1,
     startDate: new Date('2023-06-01'),
     endDate: new Date('2023-06-05'),
-    type: 'Annual Leave',
-    subType:null,
-    status: 'Approved',
-    department: 'Sales',
-    periodedebut:'matin',
-    periodefin:'matin',
-    explanation: 'mmm',
-    attachment: null,
-  },
-  {
-    nameemployee:'mahdi',
-    id: 2,
-    employeeID: 1,
-    startDate: new Date('2024-06-01'),
-    endDate: new Date('2024-06-05'),
-    type: 'Décès',
-    subType:'Oncle',
+    type: 'Annuel',
     status: 'Pending',
     department: 'Sales',
-    periodedebut:'matin',
-    periodefin:'matin',
-    explanation: 'hh',
-    attachment:'certif.txt'
+    periodedebut: 'matin',
+    periodefin: 'matin',
+   
+    explanation: 'mmm',
   },
   {
-    nameemployee:'hanen',
-    id: 3,
-    employeeID: 2,
+    nameemployee: 'Jhon',
+    id: 2,
+    employeeID: 7,
     startDate: new Date('2023-07-05'),
     endDate: new Date('2023-07-06'),
     type: 'Sick Leave',
     status: 'Approved',
     department: 'HR',
-    periodedebut:'matin',
-    periodefin:'matin',
-    explanation: 'null'
+    periodedebut: 'matin',
+    periodefin: 'matin',
+
+    explanation: 'mmm',
   },
   {
-    nameemployee:'mahdi',
-    id: 4,
+    nameemployee: 'Hanen',
+    id: 3,
     employeeID: 1,
     startDate: new Date('2023-08-12'),
     endDate: new Date('2023-08-15'),
     type: 'Annuel',
-    subType:null,
     status: 'Pending',
     department: 'Sales',
-    periodedebut:'Après-midi',
-    periodefin:'matin',
-    explanation: 'null',
-    attachment: null,
+    periodedebut: 'matin',
+    periodefin: 'matin',
+    attachment: 'null',
+    explanation: 'mmm',
+    
   },
   {
-    nameemployee:'mahdi',
-    id: 5,
+    nameemployee: 'm',
+    id: 4,
     employeeID: 1,
     startDate: new Date('2023-04-10'),
     endDate: new Date('2023-04-13'),
     type: 'Annual Leave',
-    subType:null,
     status: 'Rejected',
-    department: 'Sales',
-    periodedebut:'matin',
-    periodefin:'aprés midi',
-    explanation: 'null',
-    attachment: null,
+    department: 'HR',
+    periodedebut: 'matin',
+    periodefin: 'matin'
   },
   {
-    nameemployee:'mahdi',
+    nameemployee: 'Firas',
     id: 6,
-    employeeID: 1,
-    startDate: new Date('2024-07-12'),
-    endDate: new Date('2024-07-15'),
-    type: 'Maladie',
-    subType:null,
+    employeeID: 6,
+    startDate: new Date('2023-08-01'),
+    endDate: new Date('2023-08-03'),
+    type: 'Annuel',
+    status: 'Approved',
+    department: 'Sales',
+    periodedebut: 'matin',
+    periodefin: 'matin',
+    attachment: null,
+    explanation: 'mmm',
+  },{
+    nameemployee: 'Firas',
+    id: 7,
+    employeeID: 6,
+    startDate: new Date('2023-08-01'),
+    endDate: new Date('2023-08-03'),
+    type: 'Annuel',
     status: 'Pending',
     department: 'Sales',
-    periodedebut:'Après-midi',
-    periodefin:'matin',
-    explanation: 'null',
+    periodedebut: 'matin',
+    periodefin: 'matin',
     attachment: null,
+    explanation: 'mmm',
   },
+  ,{
+    nameemployee: 'Firas',
+    id: 8,
+    employeeID: 6,
+    startDate: new Date('2023-07-27'),
+    endDate: new Date('2023-07-30'),
+    type: 'Annuel',
+    status: 'Rejected',
+    department: 'Sales',
+    periodedebut: 'matin',
+    periodefin: 'matin',
+   
+    explanation: 'mmm',
+  },
+  {
+    nameemployee: 'Sandra Johnson',
+    id: 2,
+    employeeID: 2,
+    startDate: new Date('2023-07-05'),
+    endDate: new Date('2023-07-06'),
+    type: 'Maladie',
+    status: 'Approved',
+    department: 'HR',
+    periodedebut: 'matin',
+    periodefin: 'matin'
+  }
+    
 ];
 
-const Historique = () => {
-  const [popupVisible, setPopupVisible] = useState(false);
-  const [formDemandeVisible, setFormDemandeVisible] = useState(false);
+export default function Task() {
   const [selectedRowData, setSelectedRowData] = useState(null);
+  const [formDemandeVisible, setFormDemandeVisible] = useState(false);
+  const [popupVisible, setPopupVisible] = useState(false);
   const [leaves, setLeaves] = useState(initialLeaves);
 
-  const EmployeeId = 1;
+  const EmployeeId =2;
 
   const filteredLeaves = leaves.filter(leave => leave.employeeID === EmployeeId);
-
+  
   const plusClick = () => {
     setFormDemandeVisible(true);
     setSelectedRowData(null);
   };
 
-  const editClick = (rowData) => {
+  const handleEditClick = (rowData) => {
     setSelectedRowData(rowData);
     if (rowData.status === 'Approved') {
       setPopupVisible(true);
-      setFormDemandeVisible(false);
     } else if (rowData.status === 'Pending') {
       setFormDemandeVisible(true);
-      setPopupVisible(false);
     }
   };
 
@@ -134,6 +205,7 @@ const Historique = () => {
   };
 
   const handleSaveLeave = (updatedData) => {
+    console.log('Saving Data:', updatedData);
     setLeaves(prevLeaves =>
       prevLeaves.map(leave =>
         leave.id === updatedData.id ? { ...leave, ...updatedData } : leave
@@ -142,9 +214,7 @@ const Historique = () => {
     setFormDemandeVisible(false);
     setPopupVisible(false);
   };
-  
-  const hasSubtype = leaves.some(leave => leave.subType !== undefined && leave.subType !== null);
-  
+
   const columns = [
     {
       dataField: 'nameemployee',
@@ -155,13 +225,13 @@ const Historique = () => {
       dataField: 'startDate',
       caption: 'Start Date',
       dataType: 'date',
-      cellRender: (data) => <span>{format(data.data.startDate, 'dd-MM-yyyy')}</span>,
+      cellRender: (data) => <span>{format(new Date(data.data.startDate), 'dd-MM-yyyy')}</span>,
     },
     {
       dataField: 'endDate',
       caption: 'Due Date',
       dataType: 'date',
-      cellRender: (data) => <span>{format(data.data.endDate, 'dd-MM-yyyy')}</span>,
+      cellRender: (data) => <span>{format(new Date(data.data.endDate), 'dd-MM-yyyy')}</span>,
     },
     {
       dataField: 'periodedebut',
@@ -178,7 +248,6 @@ const Historique = () => {
     {
       dataField: 'subType',
       caption: 'Subtype',
-      visible: hasSubtype,
       hidingPriority: 3,
     },
     {
@@ -202,7 +271,7 @@ const Historique = () => {
       buttons: [{
         hint: 'Edit',
         icon: 'edit',
-        onClick: ({ row }) => editClick(row.data),
+        onClick: ({ row }) => handleEditClick(row.data),
         visible: ({ row }) => row.data.status !== 'Rejected'
       }],
     },
@@ -210,11 +279,11 @@ const Historique = () => {
 
   return (
     <React.Fragment>
-      <h2 className={'content-block'}>Historique</h2>
+      <h2 className={'content-block'}>My History</h2>
       <div className="dx-field">
         <div className="dx-field-label"></div>
         <div className="dx-field-value">
-          <Button
+        <Button
             icon="plus"
             stylingMode="text"
             text="Add Demand"
@@ -227,16 +296,17 @@ const Historique = () => {
       <DataGrid
         className={'dx-card wide-card'}
         dataSource={filteredLeaves}
-        keyExpr="id"
         showBorders={false}
         focusedRowEnabled={true}
         defaultFocusedRowIndex={0}
         columnAutoWidth={true}
         columnHidingEnabled={true}
+        keyExpr="id"
       >
         <Paging defaultPageSize={10} />
         <Pager showPageSizeSelector={true} showInfo={true} />
         <FilterRow visible={true} />
+
         {columns.map((col, index) => (
           <Column key={index} {...col} />
         ))}
@@ -258,49 +328,23 @@ const Historique = () => {
       </Popup>
 
       <Popup
-        visible={formDemandeVisible && selectedRowData && selectedRowData.status === 'Pending'}
+        visible={formDemandeVisible}
         onHiding={closeFormDemande}
         showCloseButton={true}
         title="Form Demande"
         width={1100}
         height={680}
       >
-        <FormDemande
-          popupVisible={popupVisible}
-          setPopupVisible={setPopupVisible}
-          rowData={selectedRowData}
-          handleSaveLeave={handleSaveLeave}
-          setFormDemandeVisible={setFormDemandeVisible}
-        />
+       <FormDemande
+        popupVisible={popupVisible}
+        setPopupVisible={setPopupVisible}
+        rowData={selectedRowData}
+        handleSaveLeave={handleSaveLeave}
+        setFormDemandeVisible={setFormDemandeVisible}
+      />
       </Popup>
+
     </React.Fragment>
   );
-};
+}
 
-export default Historique;
-
-export const employees = [
-  {
-    text: 'John Heart',
-    id: 1,
-    color: '#56ca85',
-    avatar: 'images/gym/coach-man.png',
-    age: 27,
-    department: 'Sales',
-  },
-  {
-    text: 'Sandra Johnson',
-    id: 2,
-    color: '#ff9747',
-    avatar: 'images/gym/coach-woman.png',
-    age: 25,
-    department: 'HR',
-  },
-];
-
-const priorities = [
-  { name: 'High', value: 4 },
-  { name: 'Urgent', value: 3 },
-  { name: 'Normal', value: 2 },
-  { name: 'Low', value: 1 }
-];

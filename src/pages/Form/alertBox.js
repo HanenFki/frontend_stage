@@ -1,10 +1,12 @@
 import React from 'react';
-import { format } from 'date-fns'; 
+import { format } from 'date-fns';
+import './alertBox.css'; // Import the CSS file
 
 const AlertComponent = ({ formData, onClose, onModify }) => {
-  const leaveTypeName = formData?.selectedLeaveType?.name || '';
-  const subtypeName = formData?.selectedSubtype?.name || '';
-  const [showSubmitAlert, setShowSubmitAlert] = React.useState(false);
+  const [showToast, setShowToast] = React.useState(false);
+
+  const leaveTypeName = formData?.selectedLeaveType?.name || formData?.selectedLeaveType || '';
+  const subtypeName = formData?.selectedSubtype?.name || formData?.selectedSubtype || '';
 
   // Function to format a date as 'dd-MM-yyyy'
   const formatDate = (date) => {
@@ -14,48 +16,49 @@ const AlertComponent = ({ formData, onClose, onModify }) => {
     return '';
   };
 
-  // Show the submission alert
+  
   const handleSend = () => {
-    setShowSubmitAlert(true);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+      onClose();
+    }, 3000); 
   };
 
-  // Hide the submission alert and call onClose
-  const handleSendConfirm = () => {
-    setShowSubmitAlert(false);
-    onClose();
-  };
-
-  // Hide the submission alert and call onModify
+  // Handle modification
   const handleModify = () => {
-    setShowSubmitAlert(false);
+    setShowToast(false);
     onModify();
   };
 
   if (!formData) {
-    return null; // Handle case where formData is null or undefined
+    return null;
   }
 
   return (
-    <div className="alert-container">
-      <h3>Vos données soumises :</h3>
-      <p><strong>Date de début :</strong> {formatDate(formData.startDate)}</p>
-      <p><strong>Date de fin :</strong> {formatDate(formData.endDate)}</p>
-      <p><strong>Période de début :</strong> {formData.startPeriod}</p>
-      <p><strong>Période de fin :</strong> {formData.endPeriod}</p>
-      <p>Type de congé : {leaveTypeName}</p>
-      {subtypeName && <p>Sous-type : {subtypeName}</p>}
-      <p><strong>Explication:</strong> {formData.explanation}</p>
-      <div className="alert-buttons">
-        <button onClick={handleSend}>Envoyer</button>
-        <button onClick={handleModify}>Modifier</button>
-      </div>
-     
-      {showSubmitAlert && (
+    <div>
+      {!showToast && (
+        <div className="alert-container">
+          <h3>Vos données soumises :</h3>
+          <p><strong>Start date :</strong> {formatDate(formData.startDate)}</p>
+          <p><strong>End date :</strong> {formatDate(formData.endDate)}</p>
+          <p><strong>Start period :</strong> {formData.selectedPeriod}</p>
+          <p><strong>End period :</strong> {formData.selectedEndPeriod}</p>
+          <p><strong>Leave Type :</strong> {leaveTypeName}</p>
+          {subtypeName && <p>Sub-type : {subtypeName}</p>}
+          <p><strong>Explanation:</strong> {formData.explanation}</p>
+          <p><strong>Attachment :</strong> {formData.attachment}</p>
+          <div className="alert-buttons">
+            <button className='form-buttons1' onClick={handleSend}>Submit</button>
+            <button className='form-buttons2' onClick={handleModify}>Modify</button>
+          </div>
+        </div>
+      )}
+
+      {showToast && (
         <div className="custom-alert">
           <p>Votre demande a été soumise !</p>
-          <div className="alert-buttons">
-            <button onClick={handleSendConfirm}>OK</button>
-          </div>
+       
         </div>
       )}
     </div>

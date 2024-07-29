@@ -9,8 +9,9 @@ import DataGrid, {
 import { format } from 'date-fns';
 import { Button } from 'devextreme-react/button';
 import { Popup } from 'devextreme-react/popup';
+import TextBox from 'devextreme-react/text-box';
 import ExplanationForm from '../Employe/ExplanationForm';
-import EmployeeLeaveForm from '../Employe/employeleaveForm';
+import PopupReject from '../popup/Popup.Reject';
 import FormDemande from '../Form/formDemande';
 
 export default function VueConges() {
@@ -69,11 +70,12 @@ export default function VueConges() {
       employeeID: 1,
       startDate: new Date('2023-06-01'),
       endDate: new Date('2023-06-05'),
-      type: 'Annual Leave',
+      type: 'Annuel',
       status: 'Pending',
       department: 'Sales',
       periodedebut: 'matin',
-      periodefin: 'matin'
+      periodefin: 'matin',
+      attachment :'robots.txt'
     },
     {
       nameemployee: 'Jhon',
@@ -85,7 +87,8 @@ export default function VueConges() {
       status: 'Approved',
       department: 'HR',
       periodedebut: 'matin',
-      periodefin: 'matin'
+      periodefin: 'matin',
+      attachment :'null'
     },
     {
       nameemployee: 'Hanen',
@@ -93,11 +96,12 @@ export default function VueConges() {
       employeeID: 1,
       startDate: new Date('2023-08-12'),
       endDate: new Date('2023-08-15'),
-      type: 'Annual Leave',
+      type: 'Annuel',
       status: 'Pending',
       department: 'Sales',
       periodedebut: 'matin',
-      periodefin: 'matin'
+      periodefin: 'matin',
+      attachment :'null'
     },
     {
       nameemployee: 'm',
@@ -121,6 +125,14 @@ export default function VueConges() {
   const [selectedRowData, setSelectedRowData] = useState(null);
   const [formDemandeVisible, setFormDemandeVisible] = useState(false);
   const [leaves, setLeaves] = useState(leavesFiltered);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [currentLeave, setCurrentLeave] = useState(null);
+  const onStatusChange = (id, status, reason = '') => {
+    const updatedLeaves = leaves.map(leave =>
+      leave.id === id ? { ...leave, status, rejectionReason: reason } : leave
+    );
+    setLeaves(updatedLeaves);
+  };
 
   const plusClick = () => {
     setFormDemandeVisible(true);
@@ -133,9 +145,29 @@ export default function VueConges() {
 
   const editClick = (rowData) => {
     setSelectedRowData(rowData);
+    setFormDemandeVisible(true);
+  };
+  const showRejectPopup = (leave) => {
+    setCurrentLeave(leave);
     setPopupVisible(true);
   };
 
+  const handleReject = () => {
+    onStatusChange(currentLeave.id, 'Rejected', rejectionReason);
+    setPopupVisible(false);
+    setRejectionReason('');
+  };
+
+  
+  const handleEditClick = (rowData) => {
+    setSelectedRowData(rowData);
+    if (rowData.status === 'Approved') {
+      setPopupVisible(true);
+    } else if (rowData.status === 'Pending') {
+      setFormDemandeVisible(true);
+    }
+  };
+  
   const closePopup = () => {
     setPopupVisible(false);
   };
@@ -156,8 +188,9 @@ export default function VueConges() {
     }
     return data.data[field];
   };
-
-  const hasSubtype = leaves.filter(leave => leave.subType !== undefined && leave.subType !== null);
+  const handleApprove = (rowData) => {
+    onStatusChange(rowData.id, 'Approved');
+  };
 
   const columns = [
     {
@@ -196,7 +229,7 @@ export default function VueConges() {
      
       dataField: 'subType',
       caption: 'Subtype',
-      visible:hasSubtype,
+     
       hidingPriority: 3,
     },
     {
@@ -205,11 +238,11 @@ export default function VueConges() {
       hidingPriority: 1,
     },
     {
-      dataField: 'attachment',
-      caption: 'Attachment',
-      hidingPriority: 4,
-
-    },
+    dataField: 'attachment',
+    caption: 'Attachment',
+   
+    hidingPriority: 4,
+  },
     {
       dataField: 'status',
       width: 190,
@@ -218,17 +251,32 @@ export default function VueConges() {
     {
       caption: 'Actions',
       type: 'buttons',
-      buttons: [{
-        hint: 'Edit',
-        icon: 'edit',
-        onClick: ({ row }) => editClick(row.data),
-        visible: ({ row }) => row.data.status !== 'Rejected'
-      }],
+      buttons: [
+        {
+          hint: 'Update',
+          icon: 'edit',
+          onClick: ({ row }) => handleEditClick(row.data),
+          visible: ({ row }) => row.data.status !== 'Rejected',
+        },
+        {
+          hint: 'Check',
+          icon: 'check',
+          onClick: ({ row }) => handleApprove(row.data),
+          visible: ({ row }) => row.data.status === 'Pending',
+        },
+        {
+          hint: 'Remove',
+          icon: 'remove',
+          onClick: ({ row }) => showRejectPopup(row.data),
+          visible: ({ row }) => row.data.status === 'Pending'  ,
+        },
+      ],
     },
   ];
+
   return (
     <React.Fragment>
-      <h2 className={'content-block'}>Leave History</h2>
+      <h2 className={'content-block'}>Management of Leave Requests</h2>
       <div className="dx-field">
         <div className="dx-field-label"></div>
         <div className="dx-field-value">
@@ -280,31 +328,42 @@ export default function VueConges() {
       </Popup>
 
       <Popup
-        visible={popupVisible && (!selectedRowData || selectedRowData.status === 'Pending')}
-        onHiding={closePopup}
-        showCloseButton={true}
-        title="Employee Leave Form"
-        width={900}
-        height={600}
-      >
-        <EmployeeLeaveForm
-          rowData={selectedRowData}
-          onClose={closePopup}
-          onSave={handleSaveLeave}
-          setPopupVisible={setPopupVisible}
-        />
-      </Popup>
-
-      <Popup
         visible={formDemandeVisible}
         onHiding={closeFormDemande}
         showCloseButton={true}
         title="Form Demande"
-        width={1000}
+        width={1100}
         height={680}
       >
-        <FormDemande onClose={closeFormDemande} />
-      </Popup>
+       <FormDemande
+    popupVisible={popupVisible}
+    setPopupVisible={setPopupVisible}
+    rowData={selectedRowData}
+    handleSaveLeave={handleSaveLeave}
+    setFormDemandeVisible={setFormDemandeVisible}
+  />
+</Popup>
+<Popup
+        visible={popupVisible && selectedRowData && selectedRowData.status === 'Approved'}
+        onHiding={closePopup}
+        showCloseButton={true}
+        title="Explanation Form"
+        width={600}
+        height={400}
+      >
+        <ExplanationForm rowData={selectedRowData}   
+         onClose={closePopup}
+          onSave={handleSaveLeave}
+          setPopupVisible={setPopupVisible}
+ />
+   </Popup>
+   <PopupReject
+        visible={popupVisible && currentLeave !== null}
+        onClose={closePopup}
+        onSubmit={handleReject}
+        reason={rejectionReason}
+        setReason={setRejectionReason}
+      />
     </React.Fragment>
   );
 }

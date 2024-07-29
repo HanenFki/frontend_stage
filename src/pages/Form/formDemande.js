@@ -5,7 +5,7 @@ import ToggleButton from './toogle';
 import AlertComponent from './alertBox';
 import { Button } from 'devextreme-react/button';
 import DateBox from 'devextreme-react/date-box';
-import './style.css'; // Make sure the CSS file is correctly imported
+import './style.css'; 
 import { leaveTypes } from './data';
 
 const weekendOptions = [
@@ -16,7 +16,7 @@ const weekendOptions = [
 const today = new Date();
 const initialValue = [today, new Date(today.getTime())];
 
-const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
+const FormDemande = ({ popupVisible, setPopupVisible, rowData,handleSaveLeave, setFormDemandeVisible }) => {
   const [selectWeekOnClick, setSelectWeekOnClick] = useState(true);
   const [selectionMode, setSelectionMode] = useState('range');
   const [selectedLeaveType, setSelectedLeaveType] = useState(null);
@@ -32,23 +32,22 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
   const [showAlert, setShowAlert] = useState(false);
   const [employeeId, setEmployeeId] = useState(1);
   const [explanation, setExplanation] = useState('');
-
+  const [attachment, setAttachment] = useState(null); 
   useEffect(() => {
-    
     if (rowData) {
-      
-      console.log('rowData.type: ', rowData.type)
       setSelectedLeaveType(rowData.type);
-      setSelectedSubtype(rowData.subType);
+      setSelectedSubtype(rowData.subType); 
       setStartDate(rowData.startDate);
       setEndDate(rowData.endDate);
       setSelectedPeriod(rowData.periodedebut);
       setSelectedEndPeriod(rowData.periodefin);
       setExplanation(rowData.explanation);
+      setAttachment(rowData.attachment || null); 
     } else {
-      resetFields(); 
+      resetFields();
     }
   }, [rowData]);
+  
 
  
   const resetFields = () => {
@@ -78,6 +77,9 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
   }, [weekendOption]);
   const handlePeriodToggle = (period) => {
     setSelectedPeriod(period);
+    if (rowData) {
+      rowData.periodedebut = period;
+    }
   };
   const handleCalendarValueChange = useCallback((e) => {
     if (e && e.value && Array.isArray(e.value) && e.value.length > 0) {
@@ -111,8 +113,19 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
 
   const handleEndPeriodToggle = (period) => {
     setSelectedEndPeriod(period);
+    if (rowData) {
+      rowData.periodefin = period;
+    }
   };
-
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setAttachment(file.name);  
+    } else {
+      setAttachment(null);
+    }
+  };
+  
   useEffect(() => {
     const newCalendarValue = [startDate, endDate];
     if (calendarValue[0] !== startDate || calendarValue[1] !== endDate) {
@@ -122,12 +135,12 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
-
+  
     if (!selectedLeaveType) {
       alert("Please select a leave type.");
       return;
     }
-
+  
     const data = {
       selectedLeaveType,
       selectedSubtype,
@@ -137,19 +150,20 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
       selectedEndPeriod,
       employeeId,
       explanation,
+      attachment,  // This should already be just the filename
     };
-
+  
     if (rowData) {
-      // Modification des données existantes
-      // Vous pouvez implémenter la logique de mise à jour ici
-      handleModify();
+      // Update the record in the table
+      const updatedRowData = { ...rowData, ...data };
+      handleSaveLeave(updatedRowData);
+      setFormDemandeVisible(false);
     } else {
-      // Ajout de nouvelles données
+      // Add new data
       setFormData(data);
       setShowAlert(true);
     }
-  }, [selectedLeaveType, selectedSubtype, startDate, endDate, selectedPeriod, selectedEndPeriod, explanation, employeeId, rowData]);
-
+  }, [selectedLeaveType, selectedSubtype, startDate, endDate, selectedPeriod, selectedEndPeriod, explanation, attachment, employeeId, rowData]);
     const handleModify = () => {
       setShowAlert(false); 
     };
@@ -180,8 +194,37 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
       setShowFileUpload(false);
       setSelectedSubtype(null);
     }
-  }, []);
-
+    if (rowData) {
+      rowData.type = value;
+    }
+  }, [rowData]);
+  
+  useEffect(() => {
+    if (rowData) {
+      setSelectedLeaveType(rowData.type);
+      const leaveType = leaveTypes.find(type => type.name === rowData.type);
+      if (leaveType && leaveType.subtypes) {
+        setSelectedSubtype(rowData.subType);
+      }
+    }
+  }, [rowData]);
+  useEffect(() => {
+    if (selectedLeaveType) {
+      const leaveType = leaveTypes.find(type => type.name === selectedLeaveType);
+      if (leaveType && (leaveType.name === 'Décès' || leaveType.name === 'Maladie')) {
+        setShowFileUpload(true);
+      } else {
+        setShowFileUpload(false);
+      }
+    }
+  }, [selectedLeaveType]);
+  const handleSubtypeChange = useCallback((value) => {
+    setSelectedSubtype(value);
+    if (rowData) {
+      rowData.subType = value;
+    }
+  }, [rowData]);
+  
   const renderSubtypesSelect = () => {
     const leaveType = leaveTypes.find(type => type.name === selectedLeaveType);
     if (leaveType && leaveType.subtypes) {
@@ -191,11 +234,13 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
           <SelectBox
             id="subtype"
             dataSource={leaveType.subtypes}
+             displayExpr="name"
+            valueExpr="name"
+           
             value={selectedSubtype}
-            displayExpr={(item) => item ? `${item.name} ${item.nbjour ? `(${item.nbjour} jours)` : ''}` : ''}
-            valueExpr="id"
-            onValueChanged={(e) => setSelectedSubtype(e.value)}
+            onValueChanged={(e) => handleSubtypeChange(e.value)}
           />
+           
         </div>
       );
     }
@@ -242,7 +287,7 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
                   min={startDate}
                   onValueChanged={(e) => setEndDate(e.value)}
                 />
-                                <ToggleButton selected={selectedEndPeriod} onToggle={handleEndPeriodToggle} />
+            <ToggleButton selected={selectedEndPeriod} onToggle={handleEndPeriodToggle} />
 
               </div>
             </div>
@@ -264,8 +309,12 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
               {renderSubtypesSelect()}
               {showFileUpload && (
                 <div className="form-group">
-                  <label>Upload File</label>
-                  <input type="file" id="fileUpload" name="fileUpload" />
+                   <label>Attachment:</label>
+        <input
+         
+          type="file"
+          onChange={handleFileChange}
+        />
                 </div>
               )}
             </div>
@@ -294,13 +343,13 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
             </div>
           </div>
         </div>
-        <div className="form-group">
+        <div >
           <label>Justification</label>
-          <textarea
-            rows="3"
+          <textarea 
+           
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
-            className="form-control"
+           
           />
         </div>
         <div className="form-group">

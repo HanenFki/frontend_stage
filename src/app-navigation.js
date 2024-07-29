@@ -12,11 +12,8 @@ export const navigation = [
         text: 'Profile',
         path: '/profile'
       },
-    
     ]
   },
- 
- 
   {
     text: 'Chef Equipe',
     icon: 'folder',
@@ -26,11 +23,11 @@ export const navigation = [
         path: '/vuecongés'
       },
       {
-        text: 'Leave Requests',
-        path: '/Statusce'
+        text: 'My History',
+        path: '/history'
       },
-      
-    ]
+    ],
+    visible: (roles) => Array.isArray(roles) && roles.includes('TeamLead') // Show if user is a team lead
   },
   {
     text: 'Manager',
@@ -41,13 +38,11 @@ export const navigation = [
         path: '/vuecongésManager'
       },
       {
-        text: 'Leave Requests',
-        path: '/Statusm'
+        text: 'My History',
+        path: '/historyMng'
       },
-      
-
-      
-    ]
+    ],
+    visible: (roles) => Array.isArray(roles) && roles.includes('Manager') // Show if user is a manager
   },
   {
     text: 'Employe',
@@ -56,11 +51,8 @@ export const navigation = [
       {
         text: 'Historique',
         path: '/historique'
-      },
-      {
-        text: 'Form',
-        path: '/formDemande'
-      },
-    ]
+      }
+    ],
+    visible: (roles) => Array.isArray(roles) && roles.includes('Employee') // Show if user is an employee
   },
-  ];
+];
