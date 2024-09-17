@@ -5,7 +5,7 @@ export const navigation = [
     icon: 'home'
   },
   {
-    text: 'Examples',
+    text: 'My personal information',
     icon: 'folder',
     items: [
       {
@@ -15,11 +15,11 @@ export const navigation = [
     ]
   },
   {
-    text: 'Chef Equipe',
+    text: 'Leaves',
     icon: 'folder',
     items: [
       {
-        text: 'Vue Congés',
+        text: 'Leaves overview',
         path: '/vuecongés'
       },
       {
@@ -27,32 +27,32 @@ export const navigation = [
         path: '/history'
       },
     ],
-    visible: (roles) => Array.isArray(roles) && roles.includes('TeamLead') // Show if user is a team lead
+    visible: (roles) => Array.isArray(roles) && roles.includes('TeamLead') 
   },
   {
-    text: 'Manager',
+    text: 'Leaves',
     icon: 'folder',
     items: [
       {
-        text: 'Vue Congés',
-        path: '/vuecongésManager'
+        text: 'Leaves overview',
+        path: '/vuecongés'
       },
       {
         text: 'My History',
-        path: '/historyMng'
+        path: '/history'
       },
     ],
-    visible: (roles) => Array.isArray(roles) && roles.includes('Manager') // Show if user is a manager
+    visible: (roles) => Array.isArray(roles) && roles.includes('Manager')
   },
   {
-    text: 'Employe',
+    text: 'Leaves',
     icon: 'folder',
     items: [
       {
-        text: 'Historique',
-        path: '/historique'
+        text: 'My History',
+        path: '/history'
       }
     ],
-    visible: (roles) => Array.isArray(roles) && roles.includes('Employee') // Show if user is an employee
+    visible: (roles) => Array.isArray(roles) && roles.includes('Employee') 
   },
 ];

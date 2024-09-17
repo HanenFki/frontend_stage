@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Popup } from 'devextreme-react/popup';
 import { Button } from 'devextreme-react/button';
 import TextBox from 'devextreme-react/text-box';
 
-const PopupReject = ({ visible, onClose, onSubmit, reason, setReason }) => {
+const PopupReject = ({ visible, onClose, onReject, rejectionReason, setRejectionReason }) => {
   return (
     <Popup
       visible={visible}
@@ -19,13 +18,13 @@ const PopupReject = ({ visible, onClose, onSubmit, reason, setReason }) => {
       <div>
         <TextBox
           placeholder="Reason for rejection"
-          value={reason}
-          onValueChanged={(e) => setReason(e.value)}
+          value={rejectionReason}
+          onValueChanged={(e) => setRejectionReason(e.value)}
         />
         <Button
           text="Submit"
           type="default"
-          onClick={onSubmit}
+          onClick={() => onReject(rejectionReason)}
         />
       </div>
     </Popup>

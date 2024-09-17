@@ -1,12 +1,14 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from "react-router-dom";
 import ContextMenu, { Position } from 'devextreme-react/context-menu';
 import List from 'devextreme-react/list';
-import { useAuth } from '../../contexts/auth';
+import useAuth from '../../hooks/useAuth';
 import './UserPanel.scss';
 
+const email = localStorage.getItem("email");
+
 export default function UserPanel({ menuMode }) {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
 
   const navigateToProfile = useCallback(() => {
@@ -24,26 +26,16 @@ export default function UserPanel({ menuMode }) {
       icon: 'runner',
       onClick: signOut
     }
-    
   ]), [navigateToProfile, signOut]);
-
-  
 
   return (
     <div className={'user-panel'}>
       <div className={'user-info'}>
-        
         <div className={'image-container'}>
-          <div
-            style={{
-              background: `url(${user.avatarUrl}) no-repeat #fff`,
-              backgroundSize: 'cover'
-            }}
-            className={'user-image'} />
+          <div className={'user-image'} />
         </div>
         <div className={'user-details'}>
-          <div className={'user-name'}>{user.email}</div>
-     
+          <div className={'user-name'}>{email}</div>
         </div>
       </div>
 

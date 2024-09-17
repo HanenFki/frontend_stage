@@ -17,7 +17,7 @@ export default function Content() {
         ))}
         <Route
           path='*'
-          element={<Navigate to='/home' />}
+          element={<Navigate to='/scheduler' />}
         />
       </Routes>
       <Footer>

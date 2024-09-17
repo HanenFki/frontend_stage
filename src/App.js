@@ -61,7 +61,7 @@ import './themes/generated/theme.additional.css';
 import { navigation } from './app-navigation';
 import { SideNavigationMenu } from './components';
 const App = () => {
-  const [isLogin, token, roles,userId] = useAuth();
+  const {isLogin, token, roles,userId} = useAuth();
 console.log('token',token);
 console.log('roles',roles);
 console.log('Id',userId);

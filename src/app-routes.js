@@ -3,12 +3,7 @@ import { withNavigationWatcher } from './contexts/navigation';
 
 
 export  const routes = [
-    {
-        path: '/tasks',
-        element: TasksPage
-    },
-  
-    
+   
     {
         path: '/profile',
         element: ProfilePage
@@ -17,10 +12,7 @@ export  const routes = [
         path: '/scheduler',
         element: Agenda
     },
-    {
-        path: '/historyMng',
-        element: History
-    },
+   
     {
         path: '/formDemande',
         element: FormDemande
@@ -29,14 +21,8 @@ export  const routes = [
         path: '/vuecongés',
         element: VueConges
     },
-    {
-        path: '/vuecongésManager',
-        element: VueCongesManager
-    },
-    {
-        path: '/historique',
-        element: Historique
-    },
+   
+    
     {
         path: '/history',
         element: MyHistory

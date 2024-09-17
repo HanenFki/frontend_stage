@@ -4,8 +4,6 @@ import { Popup } from 'devextreme-react/popup';
 import ExplanationForm from '../Employe/ExplanationForm';
 import { Button } from 'devextreme-react/button';
 import FormDemande from '../Form/formDemande';
-import { fetchEmployeeLeaves } from '../../api/api';
-import useAuth from '../../hooks/useAuth'; 
 import { format } from 'date-fns';
 
 const MyHistory = () => {
@@ -15,43 +13,63 @@ const MyHistory = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isLogin, token] = useAuth();
+  const [employeeId, setEmployeeId] = useState(null);
+  const [leaveTypes, setLeaveTypes] = useState([]);
+  const [subtypes, setSubtypes] = useState([]);
+  const API_BASE_URL = 'http://localhost:5000';
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     const loadEmployeeLeaves = async () => {
-      if (!token) {
-        console.error('No token available');
-        setLoading(false);
-        return;
-      }
-      
       try {
-        console.log('Fetching employee leaves...');
-        const data = await fetchEmployeeLeaves(token);
-        console.log('Data fetched:', data);
-      
-        if (Array.isArray(data)) {
-          if (data.length === 0) {
-            console.log('No data available');
-          }
-          setLeaves(data);
-        } else {
-          console.error('Unexpected data format:', data);
+        const response = await fetch(`${API_BASE_URL}/employees-leaves/by-keycloak-id/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
+        const data = await response.json();
+        setLeaves(data);
+        if (data.length > 0) {
+          setEmployeeId(data[0].employeeId);
+        }
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching employee leaves:', error);
-        setError('Failed to fetch data.');
-      } finally {
+        setError('Error fetching employee leaves');
         setLoading(false);
       }
     };
-  
-    loadEmployeeLeaves();
-  }, [token]); 
-  
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
-  if (leaves.length === 0) return <div>No data available.</div>;
+
+    const loadLeaveTypes = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/leave-types`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        setLeaveTypes(data);
+        const allSubtypes = data.flatMap(type => type.subtypes);
+        setSubtypes(allSubtypes);
+      } catch (error) {
+        setError('Error fetching leave types');
+      }
+    };
+    if (userId) {
+      loadEmployeeLeaves();
+      loadLeaveTypes();
+    }
+  }, [userId, token]);
 
   const handleEditClick = (rowData) => {
     setSelectedRowData(rowData);
@@ -75,19 +93,46 @@ const MyHistory = () => {
     setFormDemandeVisible(false);
   };
 
-  const handleSaveLeave = (updatedData) => {
-    console.log('Saving Data:', updatedData);
-    setLeaves(prevLeaves =>
-      prevLeaves.map(leave =>
-        leave._id === updatedData._id ? { ...leave, ...updatedData } : leave
-      )
-    );
-    setFormDemandeVisible(false);
-    setPopupVisible(false);
+  const handleSaveLeave = async (updatedData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/employees-leaves/${updatedData._id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setLeaves(prevLeaves =>
+        prevLeaves.map(leave =>
+          leave._id === data._id ? { ...leave, ...data } : leave
+        )
+      );
+      setFormDemandeVisible(false);
+      setPopupVisible(false);
+    } catch (error) {
+      setError('Error saving leave request');
+    }
   };
 
+  const getLeaveTypeName = (leaveTypeId) => {
+    const leaveType = leaveTypes.find(type => type._id === leaveTypeId);
+    return leaveType ? leaveType.name : '';
+  };
+
+  const getSubtypeName = (subtypeId) => {
+    if (!subtypeId) return '';
+    
+    const subtype = subtypes.find(subtype => subtype._id === subtypeId);
+    return subtype ? subtype.name : '';
+  };
   const columns = [
-    { dataField: 'firstName', caption: 'Name', hidingPriority: 3 },
     { 
       dataField: 'startDate', 
       caption: 'Start Date', 
@@ -102,8 +147,17 @@ const MyHistory = () => {
     },
     { dataField: 'startPeriod', caption: 'Start Period' },
     { dataField: 'endPeriod', caption: 'End Period' },
-    { dataField: 'leaveTypeId', caption: 'Type' },
-    { dataField: 'subType', caption: 'Subtype', hidingPriority: 3 },
+    { 
+      dataField: 'leaveTypeId', 
+      caption: 'Type',
+      cellRender: ({ data }) => <span>{getLeaveTypeName(data.leaveTypeId)}</span>,
+    },
+    { 
+      dataField: 'subtype', 
+      caption: 'Subtype', 
+      hidingPriority: 3,
+      cellRender: ({ data }) => <span>{getSubtypeName(data.subtype)}</span>,
+    },
     { dataField: 'explanation', caption: 'Explanation', hidingPriority: 1 },
     { dataField: 'attachment', caption: 'Attachment', hidingPriority: 4 },
     { dataField: 'status', width: 190, caption: 'Status' },
@@ -136,7 +190,6 @@ const MyHistory = () => {
           />
         </div>
       </div>
-
       <DataGrid
         className={'dx-card wide-card'}
         dataSource={leaves}
@@ -154,7 +207,6 @@ const MyHistory = () => {
           <Column key={index} {...col} />
         ))}
       </DataGrid>
-
       <Popup
         visible={popupVisible && selectedRowData && selectedRowData.status === 'Approved'}
         onHiding={closePopup}
@@ -169,21 +221,19 @@ const MyHistory = () => {
           setPopupVisible={setPopupVisible}
         />
       </Popup>
-
       <Popup
         visible={formDemandeVisible}
         onHiding={closeFormDemande}
         showCloseButton={true}
-        title="Form Demande"
+        title="Leave Request Form"
         width={1100}
-        height={680}
+        height={700}
       >
         <FormDemande
-          popupVisible={popupVisible}
-          setPopupVisible={setPopupVisible}
-          rowData={selectedRowData}
           handleSaveLeave={handleSaveLeave}
-          setFormDemandeVisible={setFormDemandeVisible}
+          rowData={selectedRowData}
+          onClose={closeFormDemande}
+          employeeId={employeeId}
         />
       </Popup>
     </React.Fragment>

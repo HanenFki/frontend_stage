@@ -1,14 +1,11 @@
-import React from 'react';
-import { format } from 'date-fns';
-import './alertBox.css'; // Import the CSS file
 
-const AlertComponent = ({ formData, onClose, onModify }) => {
+import React from 'react';
+import { format } from 'date-fns'; 
+import './alertBox.css'; 
+const AlertComponent = ({ formData, onClose, leaveTypes, subtypes,onModify }) => {
   const [showToast, setShowToast] = React.useState(false);
 
-  const leaveTypeName = formData?.selectedLeaveType?.name || formData?.selectedLeaveType || '';
-  const subtypeName = formData?.selectedSubtype?.name || formData?.selectedSubtype || '';
 
-  // Function to format a date as 'dd-MM-yyyy'
   const formatDate = (date) => {
     if (date instanceof Date) {
       return format(date, 'dd-MM-yyyy');
@@ -16,16 +13,14 @@ const AlertComponent = ({ formData, onClose, onModify }) => {
     return '';
   };
 
-  
   const handleSend = () => {
     setShowToast(true);
     setTimeout(() => {
       setShowToast(false);
       onClose();
-    }, 3000); 
+    }, 3000);
   };
 
-  // Handle modification
   const handleModify = () => {
     setShowToast(false);
     onModify();
@@ -35,15 +30,21 @@ const AlertComponent = ({ formData, onClose, onModify }) => {
     return null;
   }
 
+  // Get the leave type and subtype names
+  const leaveType = leaveTypes.find(type => type._id === formData.leaveTypeId);
+  const leaveTypeName = leaveType ? leaveType.name : 'Unknown Leave Type';
+  const subtype = subtypes.find(subtype => subtype._id === formData.subtype);
+  const subtypeName = subtype ? subtype.name : 'Unknown Subtype';
+
   return (
     <div>
       {!showToast && (
         <div className="alert-container">
-          <h3>Vos données soumises :</h3>
-          <p><strong>Start date :</strong> {formatDate(formData.startDate)}</p>
-          <p><strong>End date :</strong> {formatDate(formData.endDate)}</p>
-          <p><strong>Start period :</strong> {formData.selectedPeriod}</p>
-          <p><strong>End period :</strong> {formData.selectedEndPeriod}</p>
+          <h6>Vos données soumises :</h6>
+          <p><strong>Start date :</strong> {formatDate(new Date(formData.startDate))}</p>
+          <p><strong>End date :</strong> {formatDate(new Date(formData.endDate))}</p>
+          <p><strong>Start period :</strong> {formData.startPeriod}</p>
+          <p><strong>End period :</strong> {formData.endPeriod}</p>
           <p><strong>Leave Type :</strong> {leaveTypeName}</p>
           {subtypeName && <p>Sub-type : {subtypeName}</p>}
           <p><strong>Explanation:</strong> {formData.explanation}</p>
@@ -58,7 +59,6 @@ const AlertComponent = ({ formData, onClose, onModify }) => {
       {showToast && (
         <div className="custom-alert">
           <p>Votre demande a été soumise !</p>
-       
         </div>
       )}
     </div>
