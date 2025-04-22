@@ -1,19 +1,19 @@
-import React, { useState, createContext, useContext, useEffect } from 'react';
 
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const NavigationContext = createContext({});
+const NavigationContext = createContext();
+
+const NavigationProvider = ({ navigation, children }) => {
+    const [navigationData, setNavigationData] = useState({ currentPath: '' });
+
+    return (
+        <NavigationContext.Provider value={{ navigation, navigationData, setNavigationData }}>
+            {children}
+        </NavigationContext.Provider>
+    );
+};
+
 const useNavigation = () => useContext(NavigationContext);
-
-function NavigationProvider(props) {
-  const [navigationData, setNavigationData] = useState({ currentPath: '' });
-
-  return (
-    <NavigationContext.Provider
-      value={{ navigationData, setNavigationData }}
-      {...props}
-    />
-  );
-}
 
 function withNavigationWatcher(Component, path) {
   const WrappedComponent = function (props) {
@@ -28,8 +28,4 @@ function withNavigationWatcher(Component, path) {
   return <WrappedComponent />;
 }
 
-export {
-  NavigationProvider,
-  useNavigation,
-  withNavigationWatcher
-}
+export { NavigationProvider, useNavigation, withNavigationWatcher };

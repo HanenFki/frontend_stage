@@ -1,126 +1,149 @@
-import React, { useState } from 'react';
-import 'devextreme/data/odata/store';
-import DataGrid, {
-  Column,
-  Pager,
-  Paging,
-  FilterRow
-} from 'devextreme-react/data-grid';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import DataGrid, { Column, Pager, Paging, FilterRow } from 'devextreme-react/data-grid';
 import { format } from 'date-fns';
 import { Button } from 'devextreme-react/button';
 import { Popup } from 'devextreme-react/popup';
-import ExplanationForm from '../Employe/ExplanationForm';
-import EmployeeLeaveForm from '../Employe/employeleaveForm';
 import FormDemande from '../Form/formDemande';
+import ExplanationForm from '../Employe/ExplanationForm';
+import PopupReject from '../popup/Popup.Reject';
 
+const API_URL = 'http://localhost:5000';
+const token = localStorage.getItem("token");
+const userId = localStorage.getItem("userId");
+const userRole = localStorage.getItem("roles");
 export default function VueConges() {
-  const employees = [
-    {
-      name: 'John Heart',
-      id: 1,
-      color: '#56ca85',
-      avatar: 'images/gym/coach-man.png',
-      age: 27,
-      department: 'Sales',
-      fonction: 'Employe'
-    },
-    {
-      name: 'Sandra Johnson',
-      id: 2,
-      color: '#ff9747',
-      avatar: 'images/gym/coach-woman.png',
-      age: 25,
-      department: 'HR',
-      fonction: 'Manager'
-    },
-    {
-      name: 'Hanen',
-      id: 3,
-      color: '#ff9747',
-      avatar: 'images/gym/coach-woman.png',
-      age: 25,
-      department: 'Sales',
-      fonction: 'Employe'
-    },
-    {
-      name: 'Mahdi',
-      id: 4,
-      color: '#ff9747',
-      avatar: 'images/gym/coach-woman.png',
-      age: 25,
-      department: 'Sales',
-      fonction: 'Employe'
-    },
-    {
-      name: 'Firas',
-      id: 6,
-      color: '#ff9747',
-      avatar: 'images/gym/coach-woman.png',
-      age: 25,
-      department: 'Sales',
-      fonction: 'Chef'
-    }
-  ];
-
-  const initialLeaves = [
-    {
-      nameemployee: 'mahdi',
-      id: 1,
-      employeeID: 1,
-      startDate: new Date('2023-06-01'),
-      endDate: new Date('2023-06-05'),
-      type: 'Annual Leave',
-      status: 'Pending',
-      department: 'Sales',
-      periodedebut: 'matin',
-      periodefin: 'matin'
-    },
-    {
-      nameemployee: 'Jhon',
-      id: 2,
-      employeeID: 2,
-      startDate: new Date('2023-07-05'),
-      endDate: new Date('2023-07-06'),
-      type: 'Sick Leave',
-      status: 'Approved',
-      department: 'HR',
-      periodedebut: 'matin',
-      periodefin: 'matin'
-    },
-    {
-      nameemployee: 'Hanen',
-      id: 3,
-      employeeID: 1,
-      startDate: new Date('2023-08-12'),
-      endDate: new Date('2023-08-15'),
-      type: 'Annual Leave',
-      status: 'Pending',
-      department: 'Sales',
-      periodedebut: 'matin',
-      periodefin: 'matin'
-    },
-    {
-      nameemployee: 'm',
-      id: 4,
-      employeeID: 1,
-      startDate: new Date('2023-04-10'),
-      endDate: new Date('2023-04-13'),
-      type: 'Annual Leave',
-      status: 'Rejected',
-      department: 'HR',
-      periodedebut: 'matin',
-      periodefin: 'matin'
-    }
-  ];
-
-  const chef = employees.find(emp => emp.fonction === 'Chef');
-  const department = chef ? chef.department : null;
-  const leavesFiltered = initialLeaves.filter(leave => leave.department === department);
-
+  const [leaves, setLeaves] = useState([]);
   const [popupVisible, setPopupVisible] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
   const [formDemandeVisible, setFormDemandeVisible] = useState(false);
-  const [leaves, setLeaves] = useState(leavesFiltered);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [currentLeave, setCurrentLeave] = useState(null);
+  const [teamLeadId, setTeamLeadId] = useState(null);
+  const [popupRejectVisible, setPopupRejectVisible] = useState(false);
+  const [leaveTypes, setLeaveTypes] = useState([]);
+  const [subtypes, setSubtypes] = useState([]);
+  const [error, setError] = useState(null);
+  const [employees, setEmployees] = useState(null);
+  const [data, setData] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  useEffect(() => {
+    const fetchTeamLeadId = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/employees/teamlead-id/${userId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setTeamLeadId(response.data);
+      } catch (error) {
+        console.error('Error fetching team lead ID:', error);
+      }
+    };
+    fetchTeamLeadId();
+  }, [userId]);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/employees`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setEmployees(response.data);  
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+      }
+    };
+    fetchEmployees();
+  }, []);
+  useEffect(() => {
+    fetchData();
+  }, {teamLeadId, employees});
+  useEffect(() => {
+    const fetchLeaves = async () => {
+      try {
+        let response;
+  
+        if (userRole === 'TeamLead' && teamLeadId) {
+          response = await axios.get(`${API_URL}/employees-leaves/team/${teamLeadId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        } else {
+          response = await axios.get(`${API_URL}/employees-leaves`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+  
+          if (userRole === 'Manager') {
+            response.data = response.data.filter(leave => leave.employeeId !== userId);
+          }
+        }
+        const leavesArray = Array.isArray(response.data) ? response.data : [];
+        if (Array.isArray(leavesArray)) {
+          const leavesWithNames = leavesArray
+            .filter(leave => {
+              const employee = employees.find(emp => emp._id === leave.employeeId);
+              return employee && employee.role !== 'Manager';
+            })
+            .map(leave => {
+              const employee = employees.find(emp => emp._id === leave.employeeId);
+              return {
+                ...leave,
+                employeeName: employee ? `${employee.firstName} ${employee.lastName}` : ''
+              };
+            });
+
+          setLeaves(leavesWithNames);
+        } else {
+          console.error('Response data is not an array:', response.data);
+          setError('Invalid response format from the server.');
+        }
+      } catch (error) {
+        console.error('Error fetching leaves:', error);
+        setError('Error fetching leaves');
+      }
+    };
+  
+    fetchLeaves();
+  }, [userId, userRole, teamLeadId, employees, token]);
+  
+  
+
+  const loadLeaveTypes = async () => {
+    if (!token) {
+      console.error('Token is not available');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/leave-types`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setLeaveTypes(data);
+      const allSubtypes = data.flatMap(type => type.subtypes);
+      setSubtypes(allSubtypes);
+    } catch (error) {
+      console.error('Error fetching leave types:', error);
+      setError('Error fetching leave types');
+    }
+  };
+
+  useEffect(() => {
+    loadLeaveTypes();
+  }, [token]);
+
+  const updateLeaveStatus = (id, status, reason = '') => {
+    setLeaves(prevLeaves => 
+      prevLeaves.map(leave =>
+        leave._id === id ? { ...leave, status, rejectionReason: reason } : leave
+      )
+    );
+  };
 
   const plusClick = () => {
     setFormDemandeVisible(true);
@@ -130,46 +153,196 @@ export default function VueConges() {
   const closeFormDemande = () => {
     setFormDemandeVisible(false);
   };
-
-  const editClick = (rowData) => {
+  const showRejectPopup = (leave) => {
+    setCurrentLeave(leave);
+    setPopupRejectVisible(true);
+  };
+  const handleReject = async (reason, leave) => {
+    try {
+      const response = await axios.put(`${API_URL}/employees-leaves/${leave._id}`, {
+        status: 'Rejected',
+        rejectionReason: reason
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const employeeResponse = await axios.get(`${API_URL}/employees/${leave.employeeId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const employee = employeeResponse.data;
+      if (!employee || !employee.email || !employee.firstName) {
+        console.error('Email address or first name is missing');
+        return;
+      }
+      await axios.post(`${API_URL}/notifications/send-notification`, {
+        to: employee.email,
+        subject: 'Your leave request has been rejected',
+        text: `Dear ${employee.firstName}, your leave request has been rejected. Reason: ${reason}`,
+        html: `<p>Dear ${employee.firstName},<br>Your leave request has been <strong>rejected</strong>.<br>Reason: ${reason}.<br>Sincerely,<br>Your Leave Management System</p>;`
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setLeaves(prevLeaves => prevLeaves.map(item =>
+        item._id === leave._id ? { ...item, status: 'Rejected', rejectionReason: reason } : item
+      ));
+      setPopupRejectVisible(false);
+    } catch (error) {
+      console.error('Error rejecting leave request:', error.response || error.message);
+    }
+  };
+  
+  const handleEditClick = (rowData) => {
     setSelectedRowData(rowData);
-    setPopupVisible(true);
+    if (rowData.status === 'Approved') {
+      setPopupVisible(true);
+    } else if (rowData.status === 'Pending') {
+      setFormDemandeVisible(true);
+    }
   };
 
   const closePopup = () => {
     setPopupVisible(false);
   };
 
-  const handleSaveLeave = (updatedData) => {
-    setLeaves(prevLeaves => {
-      const updatedLeaves = prevLeaves.map(leave =>
-        leave.id === updatedData.id ? { ...leave, ...updatedData } : leave
+  const handleSaveLeave = async (updatedData) => {
+    try {
+      const response = await fetch(`${API_URL}/employees-leaves/${updatedData._id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setLeaves(prevLeaves =>
+        prevLeaves.map(leave =>
+          leave._id === data._id ? { ...leave, ...data } : leave
+        )
       );
-      return updatedLeaves;
-    });
-    setPopupVisible(false);
-  };
-
-  const renderCell = (data, field) => {
-    if (field === 'startDate' || field === 'endDate') {
-      return <span>{format(new Date(data.data[field]), 'dd-MM-yyyy')}</span>;
+      setFormDemandeVisible(false);
+      setPopupVisible(false);
+    } catch (error) {
+      console.error('Error saving leave request:', error);
+      setError('Error saving leave request');
     }
-    return data.data[field];
   };
 
-  const hasSubtype = leaves.filter(leave => leave.subType !== undefined && leave.subType !== null);
+  const fetchData = async () => {
+    if (!teamLeadId) return;
+  
+    try {
+      const leavesResponse = await axios.get(`${API_URL}/employees-leaves/team/${teamLeadId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });    
+      const leavesWithNames = leavesResponse.data.map(leave => {
+        const employee = employees.find(emp => emp._id === leave.employeeId);
+        return {
+          ...leave,
+          employeeName: employee ? employee.firstName + ' ' + employee.lastName : ''
+        };
+      });
+      setLeaves(leavesWithNames);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+  
+  const handleApprove = async (rowData) => {
+    if (!rowData || !rowData._id) {
+      console.error('Invalid rowData or missing ID');
+      return;
+    }
+    try {
+      const startDateISO = new Date(rowData.startDate).toISOString();
+      const endDateISO = new Date(rowData.endDate).toISOString();
+      let newStatus;
+      if (userRole.includes('TeamLead')) {
+        if (rowData.status === 'Pending') {
+          newStatus = 'Approved by TeamLead';
+        } else {
+          console.error('Invalid status for TeamLead:', rowData.status);
+          return;
+        }
+      } 
+      else if (userRole.includes('Manager')) {
+        if (rowData.status === 'Approved by TeamLead') {
+          newStatus = 'Approved';
+        } else if (rowData.status === 'Pending') {
+          newStatus = 'Approved';
+        } else {
+          console.error('Invalid status for Manager:', rowData.status);
+          return;
+        }
+      } else {
+        console.error('Invalid user role:', userRole);
+        return;
+      }
+      if (!newStatus) {
+        console.error('New status is undefined');
+        return;
+      }
+      const response = await axios.put(`${API_URL}/employees-leaves/${rowData._id}`, {
+        status: newStatus,
+        startDate: startDateISO,
+        endDate: endDateISO,
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.status === 200) {
+       
+        const employeeResponse = await axios.get(`${API_URL}/employees/${rowData.employeeId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const employee = employeeResponse.data;
+  
+        if (!employee || !employee.email || !employee.firstName) {
+          console.error('Email address or first name is missing');
+          return;
+        }
+        await axios.post(`${API_URL}/notifications/send-notification`, {
+          to: employee.email,
+          subject: 'Your leave request has been approved',
+          text: `Dear ${employee.firstName}, your leave request has been approved.`,
+          html: `<p>Dear ${employee.firstName},<br>Your leave request has been <strong>approved</strong>.<br>Sincerely,<br>Your Leave Management System</p>`
+        }, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        updateLeaveStatus(rowData._id, newStatus);
+      } else {
+        console.error('Failed to update leave status');
+      }
+    } catch (error) {
+      console.error('Error approving leave request:', error.response || error.message);
+    }
+  };
+  const getLeaveTypeName = (leaveTypeId) => {
+    const leaveType = leaveTypes.find(type => type._id === leaveTypeId);
+    return leaveType ? leaveType.name : '';
+  };
+ const getSubtypeName = (subtypeId) => {
+    if (!subtypeId) return '';
+    const subtype = subtypes.find(subtype => subtype._id === subtypeId);
+    return subtype ? subtype.name : '';
+  };
+  const getEmployeeName = (employeeId) => {
+    const employee = employees.find(emp => emp._id === employeeId);
 
+    return employee ? `${employee.firstName} ${employee.lastName}` : '';
+  }; 
+  const shouldShowReasonColumn = leaves.some(leave => leave.status === 'Rejected');
   const columns = [
     {
-      dataField: 'nameemployee',
+      dataField: 'employeeId',
       caption: 'Name',
-      hidingPriority: 3,
+      cellRender: ({ data }) => <span>{getEmployeeName(data.employeeId)}</span>,
     },
     {
       dataField: 'startDate',
       caption: 'Start Date',
       dataType: 'date',
-     
       cellRender: (data) => <span>{format(data.data.startDate, 'dd-MM-yyyy')}</span>,
     },
     {
@@ -179,25 +352,23 @@ export default function VueConges() {
       cellRender: (data) => <span>{format(data.data.endDate, 'dd-MM-yyyy')}</span>,
     },
     {
-      dataField: 'periodedebut',
+      dataField: 'startPeriod',
       caption: 'Start Period',
-     
     },
     {
-      dataField: 'periodefin',
+      dataField: 'endPeriod',
       caption: 'End Period',
-     
     },
     {
-      dataField: 'type',
+      dataField: 'leaveTypeId',
       caption: 'Type',
+      cellRender: ({ data }) => <span>{getLeaveTypeName(data.leaveTypeId)}</span>,
     },
     {
-     
-      dataField: 'subType',
+      dataField: 'subtype',
       caption: 'Subtype',
-      visible:hasSubtype,
       hidingPriority: 3,
+      cellRender: ({ data }) => <span>{getSubtypeName(data.subtype)}</span>,
     },
     {
       dataField: 'explanation',
@@ -208,27 +379,52 @@ export default function VueConges() {
       dataField: 'attachment',
       caption: 'Attachment',
       hidingPriority: 4,
-
     },
     {
       dataField: 'status',
       width: 190,
       caption: 'Status',
     },
+    ...(shouldShowReasonColumn ? [{
+      dataField: 'reason',
+      caption: 'Reason for Rejection',
+      hidingPriority: 3,
+      cellRender: ({ data }) => <span>{data.reason || 'N/A'}</span>
+    }] : []),
+
     {
       caption: 'Actions',
       type: 'buttons',
-      buttons: [{
-        hint: 'Edit',
-        icon: 'edit',
-        onClick: ({ row }) => editClick(row.data),
-        visible: ({ row }) => row.data.status !== 'Rejected'
-      }],
-    },
-  ];
+      buttons: [
+        {
+          hint: 'Update',
+          icon: 'edit',
+          onClick: ({ row }) => handleEditClick(row.data),
+          visible: ({ row }) => row.data.status !== 'Rejected'
+        },
+        {
+          hint: 'Check',
+          icon: 'check',
+          onClick: ({ row }) => {
+           
+            handleApprove(row.data);
+          },
+          visible: ({ row }) => {
+            const status = row.data.status;
+            return status === 'Pending' || (status === 'Approved by TeamLead' && userRole.includes('Manager'));
+          }
+        },
+        {
+          hint: 'Remove',
+          icon: 'remove',
+          onClick: ({ row }) => showRejectPopup(row.data),
+          visible: ({ row }) => row.data.status === 'Pending'
+        }
+      ]
+    }];
   return (
     <React.Fragment>
-      <h2 className={'content-block'}>Leave History</h2>
+      <h2 className={'content-block'}>Management of Leave Requests</h2>
       <div className="dx-field">
         <div className="dx-field-label"></div>
         <div className="dx-field-value">
@@ -241,7 +437,6 @@ export default function VueConges() {
           />
         </div>
       </div>
-
       <DataGrid
         className={'dx-card wide-card'}
         dataSource={leaves}
@@ -250,61 +445,50 @@ export default function VueConges() {
         defaultFocusedRowIndex={0}
         columnAutoWidth={true}
         columnHidingEnabled={true}
-         keyExpr="id"
+        keyExpr="_id"
       >
         <Paging defaultPageSize={10} />
         <Pager showPageSizeSelector={true} showInfo={true} />
         <FilterRow visible={true} />
-
         {columns.map((col, index) => (
           <Column key={index} {...col} />
         ))}
-
-     
       </DataGrid>
-
       <Popup
-        visible={popupVisible && selectedRowData && selectedRowData.status === 'Approved'}
-        onHiding={closePopup}
-        showCloseButton={true}
-        title="Explanation Form"
-        width={600}
-        height={400}
-      >
-        <ExplanationForm
-          rowData={selectedRowData}
-          onClose={closePopup}
-          onSave={handleSaveLeave}
-          setPopupVisible={setPopupVisible}
-        />
-      </Popup>
-
-      <Popup
-        visible={popupVisible && (!selectedRowData || selectedRowData.status === 'Pending')}
-        onHiding={closePopup}
-        showCloseButton={true}
-        title="Employee Leave Form"
-        width={900}
-        height={600}
-      >
-        <EmployeeLeaveForm
-          rowData={selectedRowData}
-          onClose={closePopup}
-          onSave={handleSaveLeave}
-          setPopupVisible={setPopupVisible}
-        />
-      </Popup>
-
-      <Popup
+  visible={popupVisible && selectedRowData && selectedRowData.status === 'Approved'}
+  onHiding={closePopup}
+  showCloseButton={true}
+  title="Explanation Form"
+  width={600}
+  height={400}
+>
+  <ExplanationForm
+    setPopupVisible={setPopupVisible}
+    handleSaveLeave={handleSaveLeave}
+    rowData={selectedRowData}
+  />
+</Popup>
+   <Popup
         visible={formDemandeVisible}
         onHiding={closeFormDemande}
         showCloseButton={true}
-        title="Form Demande"
-        width={1000}
-        height={680}
+        title={selectedRowData ? 'Edit Leave Request' : 'Add Leave Request'}
+        width={1100}
+        height={700}
       >
-        <FormDemande onClose={closeFormDemande} />
+        <FormDemande
+          handleSaveLeave={handleSaveLeave}
+          rowData={selectedRowData}
+          onClose={closeFormDemande}
+        />
       </Popup>
+      <PopupReject
+  visible={popupRejectVisible}
+  onClose={() => setPopupRejectVisible(false)}
+  onReject={(reason) => handleReject(reason, currentLeave)}
+  rejectionReason={rejectionReason}
+  setRejectionReason={setRejectionReason}
+/> 
     </React.Fragment>
   );
 }

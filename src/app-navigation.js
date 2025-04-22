@@ -5,62 +5,54 @@ export const navigation = [
     icon: 'home'
   },
   {
-    text: 'Examples',
+    text: 'My personal information',
     icon: 'folder',
     items: [
       {
         text: 'Profile',
         path: '/profile'
       },
-    
     ]
   },
- 
- 
   {
-    text: 'Chef Equipe',
+    text: 'Leaves',
     icon: 'folder',
     items: [
       {
-        text: 'Vue Congés',
+        text: 'Leaves overview',
         path: '/vuecongés'
       },
       {
-        text: 'Leave Requests',
-        path: '/Statusce'
+        text: 'My History',
+        path: '/history'
       },
-      
-    ]
+    ],
+    visible: (roles) => Array.isArray(roles) && roles.includes('TeamLead') 
   },
   {
-    text: 'Manager',
+    text: 'Leaves',
     icon: 'folder',
     items: [
       {
-        text: 'Vue Congés',
-        path: '/vuecongésManager'
+        text: 'Leaves overview',
+        path: '/vuecongés'
       },
       {
-        text: 'Leave Requests',
-        path: '/Statusm'
+        text: 'My History',
+        path: '/history'
       },
-      
-
-      
-    ]
+    ],
+    visible: (roles) => Array.isArray(roles) && roles.includes('Manager')
   },
   {
-    text: 'Employe',
+    text: 'Leaves',
     icon: 'folder',
     items: [
       {
-        text: 'Historique',
-        path: '/historique'
-      },
-      {
-        text: 'Form',
-        path: '/formDemande'
-      },
-    ]
+        text: 'My History',
+        path: '/history'
+      }
+    ],
+    visible: (roles) => Array.isArray(roles) && roles.includes('Employee') 
   },
-  ];
+];

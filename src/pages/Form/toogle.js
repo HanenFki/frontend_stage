@@ -1,10 +1,7 @@
 import React from 'react';
 import './style.css'; 
 const ToggleButton = ({ selected, onToggle }) => {
-  const periods = ['matin', 'Après-midi'];
-
-  console.log(selected); 
-
+  const periods = ['morning', 'afternoon'];
   return (
     <div className="toggle-button">
       {periods.map(period => (

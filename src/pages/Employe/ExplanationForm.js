@@ -1,41 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useCallback} from 'react';
 import { Button } from 'devextreme-react/button';
-import './EmployeeLeaveForm.css';
 
-const ExplanationForm = ({ popupVisible, setPopupVisible, rowData, onSave }) => {
+import { updateLeaveRequest } from '../../api/api';
+const API_URL = 'http://localhost:5000';
+const token = localStorage.getItem("token");
+const userId = localStorage.getItem("userId");
+const ExplanationForm = ({ setPopupVisible, rowData, handleSaveLeave }) => {
   const [explanation, setExplanation] = useState('');
-  const [attachment, setAttachment] = useState(null); 
+  const [attachment, setAttachment] = useState(null);
 
   useEffect(() => {
     if (rowData) {
+      console.log('rowData:', {rowData
+     
+      });
       setExplanation(rowData.explanation || '');
-      setAttachment(rowData.attachment || null); 
-    } else {
-      setExplanation('');
-      setAttachment(null);
+      setAttachment(rowData.attachment || null);
     }
   }, [rowData]);
 
-  const handleSave = () => {
-    const updatedData = {
-      id: rowData ? rowData.id : Date.now(),
-      explanation,
-      attachment: attachment ? attachment.name : null, // Utilisez .name pour obtenir le nom du fichier
+  const handleSubmit = useCallback(async (e) => {
+   
+    const data = {
+   
+      explanation: explanation || '',
+      attachment: attachment || '',
+    
     };
-
-    onSave(updatedData);
-    setPopupVisible(false);
-  };
-
+    
+    console.log('Submitting leave request with data:', data);
+  
+    try {
+      if (rowData) {
+        await updateLeaveRequest(rowData._id, data);
+        handleSaveLeave({ ...rowData, ...data });
+      }
+      setPopupVisible(false);
+    } catch (error) {
+      console.error('Error submitting leave request:', error);
+    }
+  }, [ explanation, attachment, rowData]);
+  
   const handleCancel = () => {
     setPopupVisible(false);
   };
 
   const handleFileChange = (e) => {
     if (e.target.files.length > 0) {
-      setAttachment(e.target.files[0]); // Met à jour l'objet File sélectionné
+      setAttachment(e.target.files[0]);
     } else {
-      setAttachment(null); // Réinitialise à null si aucun fichier n'est sélectionné
+      setAttachment(null);
     }
   };
 
@@ -58,8 +72,8 @@ const ExplanationForm = ({ popupVisible, setPopupVisible, rowData, onSave }) => 
         />
       </div>
       <div className="buttons-container">
-        <Button text="Save" onClick={handleSave} />
-        <Button text="Cancel" onClick={handleCancel} />
+        <Button className="form-buttons1" text="Save" onClick={handleSubmit} />
+        <Button className="form-buttons2" text="Cancel" onClick={handleCancel} />
       </div>
     </div>
   );

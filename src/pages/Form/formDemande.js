@@ -5,86 +5,197 @@ import ToggleButton from './toogle';
 import AlertComponent from './alertBox';
 import { Button } from 'devextreme-react/button';
 import DateBox from 'devextreme-react/date-box';
-import './style.css'; // Make sure the CSS file is correctly imported
-import { leaveTypes } from './data';
-
-const weekendOptions = [
-  { value: 'saturday-sunday', label: 'Saturday and Sunday' },
-  { value: 'sunday', label: 'Sunday only' }
-];
+import './style.css'; 
+import { fetchLeaveTypes, createLeaveRequest, updateLeaveRequest } from '../../api/api';
+import axios from 'axios';
 
 const today = new Date();
 const initialValue = [today, new Date(today.getTime())];
-
-const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
-  const [selectWeekOnClick, setSelectWeekOnClick] = useState(true);
-  const [selectionMode, setSelectionMode] = useState('range');
-  const [selectedLeaveType, setSelectedLeaveType] = useState(null);
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
-  const [calendarValue, setCalendarValue] = useState(initialValue);
-  const [selectedPeriod, setSelectedPeriod] = useState('Morning');
-  const [selectedEndPeriod, setSelectedEndPeriod] = useState('Morning');
-  const [weekendOption, setWeekendOption] = useState('saturday-sunday');
-  const [selectedSubtype, setSelectedSubtype] = useState(null);
-  const [showFileUpload, setShowFileUpload] = useState(false);
-  const [formData, setFormData] = useState(null);
-  const [showAlert, setShowAlert] = useState(false);
-  const [employeeId, setEmployeeId] = useState(1);
-  const [explanation, setExplanation] = useState('');
+const token = localStorage.getItem("token");
+const userId = localStorage.getItem("userId");
+const userRole = localStorage.getItem("roles");
+const FormDemande = ({  employeeId, rowData, handleSaveLeave, setFormDemandeVisible }) => {
+const [selectWeekOnClick, setSelectWeekOnClick] = useState(true);
+const [selectionMode, setSelectionMode] = useState('range');
+const [selectedLeaveType, setSelectedLeaveType] = useState(null);
+const [startDate, setStartDate] = useState(today);
+const [endDate, setEndDate] = useState(today);
+const [calendarValue, setCalendarValue] = useState(initialValue);
+const [selectedPeriod, setSelectedPeriod] = useState('morning');
+const [selectedEndPeriod, setSelectedEndPeriod] = useState('morning');
+const [weekendOption, setWeekendOption] = useState('saturday-sunday');
+const [selectedSubtype, setSelectedSubtype] = useState(null);
+const [showFileUpload, setShowFileUpload] = useState(false);
+const [formData, setFormData] = useState(null);
+const [showAlert, setShowAlert] = useState(false);
+const [status, setStatus] = useState('');
+const [explanation, setExplanation] = useState('');
+const [attachment, setAttachment] = useState(null);
+const [leaveTypes, setLeaveTypes] = useState([]);
+const [subtypes, setSubtypes] = useState([]);
+const [teamMembers, setTeamMembers] = useState([]);
+const [selectedEmployee, setSelectedEmployee] = useState(employeeId);
+const [teamLeadId, setTeamLeadId] = useState(null);
+const [employees, setEmployees] = useState(null);
+const API_URL = 'http://localhost:5000';
 
   useEffect(() => {
-    
-    if (rowData) {
-      
-      console.log('rowData.type: ', rowData.type)
-      setSelectedLeaveType(rowData.type);
-      setSelectedSubtype(rowData.subType);
-      setStartDate(rowData.startDate);
-      setEndDate(rowData.endDate);
-      setSelectedPeriod(rowData.periodedebut);
-      setSelectedEndPeriod(rowData.periodefin);
-      setExplanation(rowData.explanation);
-    } else {
-      resetFields(); 
-    }
-  }, [rowData]);
+    const fetchTeamLeadId = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/employees/teamlead-id/${userId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setTeamLeadId(response.data);
+      } catch (error) {
+        console.error('Error fetching team lead ID:', error);
+      }
+    };
+    fetchTeamLeadId();
+  }, [userId]);
 
  
+  useEffect(() => {
+    const fetchEmployeesByTeamLead = async () => {
+      try {
+        let response;
+  
+        if (userRole.includes('TeamLead') && teamLeadId) {
+           response = await axios.get(`${API_URL}/employees/teamlead/${teamLeadId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        const employeesWithNames = response.data.map(employee => ({
+          ...employee,
+          name: `${employee.firstName} ${employee.lastName}`
+        }));
+          if (teamLeadId && !employeesWithNames.some(emp => emp._id === teamLeadId)) {
+          const teamLeadResponse = await axios.get(`${API_URL}/employees/${teamLeadId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const teamLead = {
+            ...teamLeadResponse.data,
+            name: `${teamLeadResponse.data.firstName} ${teamLeadResponse.data.lastName}`
+          };
+          employeesWithNames.unshift(teamLead);
+        }
+  
+        setEmployees(employeesWithNames);
+        setSelectedEmployee(teamLeadId); 
+  
+        } else if (userRole.includes('Manager')) {
+          response = await axios.get(`${API_URL}/employees`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const employeesWithNames = response.data.map(employee => ({
+            ...employee,
+            name: `${employee.firstName || ''} ${employee.lastName || ''}`
+          }));
+
+          const managerIdResponse = await axios.get(`${API_URL}/employees/teamlead-id/${userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const managerId = managerIdResponse.data;
+          const managerResponse = await axios.get(`${API_URL}/employees/${managerId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const managerDetails = {
+            _id: managerResponse.data._id,
+            name: `${managerResponse.data.firstName || ''} ${managerResponse.data.lastName || ''}`
+          };
+          const updatedEmployees = employeesWithNames.filter(emp => emp._id !== managerId);
+          updatedEmployees.unshift(managerDetails); 
+          setEmployees(updatedEmployees);
+          setSelectedEmployee(managerDetails._id);
+
+        } else   if (userRole.includes('Employee')) {
+          response = await axios.get(`${API_URL}/employees/teamlead-id/${userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+  
+          const currentEmployeeId = response.data;
+          const employeeResponse = await axios.get(`${API_URL}/employees/${currentEmployeeId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+  
+          const currentEmployee = employeeResponse.data;
+          const employeesWithNames = [{
+            _id: currentEmployee._id,
+            name: `${currentEmployee.firstName || ''} ${currentEmployee.lastName || ''}`
+          }];
+          
+          setEmployees(employeesWithNames);
+          setSelectedEmployee(currentEmployee._id);
+        }  
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+      }
+    };
+    fetchEmployeesByTeamLead();
+  }, [userRole, token, userId,teamLeadId]);
+  
+  useEffect(() => {
+    const fetchTypes = async () => {
+      try {
+        const token = localStorage.getItem("token"); 
+        const types = await fetchLeaveTypes(token);
+        setLeaveTypes(types || []); 
+      } catch (error) {
+        console.error('Error fetching leave types:', error);
+        setLeaveTypes([]); 
+      }
+    };
+    
+    fetchTypes();
+  }, []);
+
+  useEffect(() => {
+    if (rowData && leaveTypes.length > 0) {
+      const leaveType = leaveTypes.find(type => type._id === rowData.leaveTypeId);
+      if (leaveType) {
+        setSubtypes(leaveType.subtypes || []);
+        setSelectedSubtype(rowData.subtype);
+      } else {
+        setSubtypes([]);
+        setSelectedSubtype(null);
+      }
+      setSelectedLeaveType(rowData.leaveTypeId)
+      setStartDate(rowData.startDate);
+      setEndDate(rowData.endDate);
+      setSelectedPeriod(rowData.startPeriod);
+      setSelectedEndPeriod(rowData.endPeriod);
+      setExplanation(rowData.explanation);
+      setAttachment(rowData.attachment || null);
+      setStatus(rowData.status);
+      setSelectedEmployee(rowData.employeeId || employeeId);
+    }
+  }, [rowData, leaveTypes,employeeId]);
+  
+  useEffect(() => {
+    setCalendarValue([startDate, endDate]);
+  }, [startDate, endDate]);
+
   const resetFields = () => {
     setStartDate(today);
     setEndDate(today);
     setCalendarValue(initialValue);
-    setSelectedPeriod('Morning');
-    setSelectedEndPeriod('Morning');
+    setSelectedPeriod('morning');
+    setSelectedEndPeriod('morning');
     setShowFileUpload(false);
     setSelectedLeaveType(null);
     setSelectedSubtype(null);
     setExplanation('');
+    setSubtypes([]);
+    
   };
 
-  const isDateDisabled = useCallback(({ date }) => {
-    const day = date.getDay();
-    if (date < today) {
-      return true;
-    }
-    if (weekendOption === 'saturday-sunday' && (day === 0 || day === 6)) {
-      return true;
-    }
-    if (weekendOption === 'sunday' && day === 0) {
-      return true;
-    }
-    return false;
-  }, [weekendOption]);
-  const handlePeriodToggle = (period) => {
+  const handlePeriodToggle = useCallback((period) => {
     setSelectedPeriod(period);
-  };
+  }, []);
+
   const handleCalendarValueChange = useCallback((e) => {
     if (e && e.value && Array.isArray(e.value) && e.value.length > 0) {
       const newDates = e.value
         .map(date => date instanceof Date ? date : null)
         .filter(Boolean);
-
       if (newDates.length === 2) {
         const [newStartDate, newEndDate] = newDates;
         setStartDate(newStartDate);
@@ -96,229 +207,181 @@ const FormDemande = ({ popupVisible, setPopupVisible, rowData }) => {
         } else {
           setStartDate(newStartDate);
         }
+        setCalendarValue([newDates]);
       }
 
-      setCalendarValue(prevCalendarValue => {
-        if (prevCalendarValue[0] !== newDates[0] || prevCalendarValue[1] !== newDates[1]) {
-          return newDates;
-        }
-        return prevCalendarValue;
-      });
-    } else {
-      console.error('Invalid value received from Calendar component:', e);
-    }
-  }, [endDate]);
-
-  const handleEndPeriodToggle = (period) => {
+    
+        }},[]);
+   
+  const handleEndPeriodToggle = useCallback((period) => {
     setSelectedEndPeriod(period);
+  }, []);
+
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setAttachment(file.name);
+    } else {
+      setAttachment(null);
+    }
   };
 
-  useEffect(() => {
-    const newCalendarValue = [startDate, endDate];
-    if (calendarValue[0] !== startDate || calendarValue[1] !== endDate) {
-      setCalendarValue(newCalendarValue);
-    }
-  }, [startDate, endDate]);
-
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-
-    if (!selectedLeaveType) {
-      alert("Please select a leave type.");
-      return;
-    }
-
     const data = {
-      selectedLeaveType,
-      selectedSubtype,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      selectedPeriod,
-      selectedEndPeriod,
-      employeeId,
-      explanation,
+      employeeId: selectedEmployee, 
+      leaveTypeId: selectedLeaveType,
+      startDate: new Date(startDate).toISOString(),
+      endDate: new Date(endDate).toISOString(),
+      startPeriod: selectedPeriod,
+      endPeriod: selectedEndPeriod,
+      explanation: explanation || '',
+      attachment: attachment || '',
+      subtype: selectedSubtype || '',
+      keycloakId: localStorage.getItem('userId') || '',
     };
-
-    if (rowData) {
-      // Modification des données existantes
-      // Vous pouvez implémenter la logique de mise à jour ici
-      handleModify();
-    } else {
-      // Ajout de nouvelles données
-      setFormData(data);
-      setShowAlert(true);
+    try {
+      if (rowData) {
+        await updateLeaveRequest(rowData._id, data);
+        handleSaveLeave({ ...rowData, ...data });
+      } else {
+        await createLeaveRequest(data);
+        setFormData(data);
+        setShowAlert(true);
+      }
+      setFormDemandeVisible(false);
+    } catch (error) {
+      console.error('Error submitting leave request:', error);
     }
-  }, [selectedLeaveType, selectedSubtype, startDate, endDate, selectedPeriod, selectedEndPeriod, explanation, employeeId, rowData]);
+  }, [selectedEmployee, selectedLeaveType, selectedSubtype, startDate, endDate, selectedPeriod, selectedEndPeriod, explanation, attachment, rowData]);
+  const handleModify = () => {
+    setShowAlert(false);
+  };
 
-    const handleModify = () => {
-      setShowAlert(false); 
-    };
-    
-    const handleAlertClose = () => {
-      setShowAlert(false);
-      setFormData(null); 
-    };
+  const handleAlertClose = () => {
+    setShowAlert(false);
+    setFormData(null);
+  };
 
   const onClearButtonClick = () => {
     resetFields();
   };
 
-  const handleWeekendOptionChange = useCallback((value) => {
-    setWeekendOption(value);
-  }, []);
-
   const handleLeaveTypeChange = useCallback((value) => {
     setSelectedLeaveType(value);
-    const leaveType = leaveTypes.find(type => type.name === value);
-    
-    if (leaveType && (leaveType.name === 'Décès' || leaveType.name === 'Maladie')) {
-      setShowFileUpload(true);
-      if (leaveType.subtypes) {
-        setSelectedSubtype(leaveType.subtypes[0].id);
-      }
+    const leaveType = leaveTypes.find(type => type._id === value);
+    if (leaveType) {
+      setSubtypes(leaveType.subtypes || []); 
+      setSelectedSubtype(null);
     } else {
-      setShowFileUpload(false);
+      setSubtypes([]);
       setSelectedSubtype(null);
     }
-  }, []);
-
-  const renderSubtypesSelect = () => {
-    const leaveType = leaveTypes.find(type => type.name === selectedLeaveType);
-    if (leaveType && leaveType.subtypes) {
-      return (
+  }, [leaveTypes]);
+  return (
+    <form onSubmit={handleSubmit} className="form-container">
+    <div className="column-container">
+      {/* Left Column */}
+      <div className="left-column">
+      <div className="form-group">
+  <label>Employee</label>
+  <SelectBox
+    dataSource={employees}
+    value={selectedEmployee}
+    displayExpr="name" 
+    valueExpr="_id" 
+    onValueChanged={(e) => setSelectedEmployee(e.value)}
+  />
+</div>
         <div className="form-group">
-          <label>Subtype</label>
+          <label>Start Date</label>
+          <div className="field-with-toggle">
+            <DateBox
+              value={startDate}
+              displayFormat="dd-MM-yyyy"
+              min={today}
+              onValueChanged={(e) => {
+                const newStartDate = e.value;
+                setStartDate(newStartDate);
+                if (newStartDate > endDate) {
+                  setEndDate(newStartDate);
+                }
+              }}
+            />
+            <ToggleButton selected={selectedPeriod} onToggle={handlePeriodToggle} />
+          </div>
+        </div>
+        <div className="form-group">
+          <label>End Date</label>
+          <div className="field-with-toggle">
+            <DateBox
+              value={endDate}
+              displayFormat="dd-MM-yyyy"
+              min={startDate}
+              onValueChanged={(e) => setEndDate(e.value)}
+            />
+            <ToggleButton selected={selectedEndPeriod} onToggle={handleEndPeriodToggle} />
+          </div>
+        </div>
+        <div className="form-group">
+          <label>Leave Type</label>
           <SelectBox
-            id="subtype"
-            dataSource={leaveType.subtypes}
-            value={selectedSubtype}
-            displayExpr={(item) => item ? `${item.name} ${item.nbjour ? `(${item.nbjour} jours)` : ''}` : ''}
-            valueExpr="id"
-            onValueChanged={(e) => setSelectedSubtype(e.value)}
+            dataSource={leaveTypes}
+            value={selectedLeaveType}
+            displayExpr="name"
+            valueExpr="_id"
+            onValueChanged={(e) => handleLeaveTypeChange(e.value)}
           />
         </div>
-      );
-    }
-    return null;
-  };
-  return (
-    <div className='content-block'>
-      {showAlert && (
-        <AlertComponent
-          formData={formData}
-          onClose={handleAlertClose}
-          onModify={handleModify}
-        />
-      )}
-
-      <form onSubmit={handleSubmit} className="form-container">
-        <div className="column-container">
-          {/* Left Column */}
-          <div className="left-column">
-            <div className="form-group">
-              <label>Start Date</label>
-              <div className="field-with-toggle">
-                <DateBox
-                  value={startDate}
-                  displayFormat="dd-MM-yyyy"
-                  min={today}
-                  onValueChanged={(e) => {
-                    const newStartDate = e.value;
-                    setStartDate(newStartDate);
-                    if (newStartDate > endDate) {
-                      setEndDate(newStartDate);
-                    }
-                  }}
-                />
-                <ToggleButton selected={selectedPeriod} onToggle={handlePeriodToggle} />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>End Date</label>
-              <div className="field-with-toggle">
-                <DateBox
-                  value={endDate}
-                  displayFormat="dd-MM-yyyy"
-                  min={startDate}
-                  onValueChanged={(e) => setEndDate(e.value)}
-                />
-                                <ToggleButton selected={selectedEndPeriod} onToggle={handleEndPeriodToggle} />
-
-              </div>
-            </div>
-          
-            <div className="form-group">
-              <label>Leave Type</label>
-          <SelectBox
-                dataSource={leaveTypes}
-                displayExpr="name"
-                valueExpr="name"
-                showClearButton={false}
-                //displayValue={selectedLeaveType}
-                value={selectedLeaveType}
-
-                
-                onValueChanged={(e) => handleLeaveTypeChange(e.value)}
-              />
-
-              {renderSubtypesSelect()}
-              {showFileUpload && (
-                <div className="form-group">
-                  <label>Upload File</label>
-                  <input type="file" id="fileUpload" name="fileUpload" />
-                </div>
-              )}
-            </div>
-
-          </div>
-          {/* Right Column */}
-          <div className="right-column">
-            <div className="form-group">
-              <Calendar
-                showWeekNumbers={true}
-                selectionMode={selectionMode}
-                value={calendarValue}
-                onValueChanged={handleCalendarValueChange}
-                disabledDates={isDateDisabled}
-                max={new Date(today.getFullYear(), 11, 31)}
-                width={400}
-              />
-              <SelectBox
-                id="weekendOption"
-                dataSource={weekendOptions}
-                displayExpr="label"
-                valueExpr="value"
-                value={weekendOption}
-                onValueChanged={(e) => handleWeekendOptionChange(e.value)}
-              />
-            </div>
-          </div>
-        </div>
+        {selectedLeaveType && subtypes.length > 0 && (
+  <SelectBox
+    dataSource={subtypes}
+    displayExpr="name"
+    valueExpr="_id"
+    value={selectedSubtype}
+    onValueChanged={(e) => setSelectedSubtype(e.value)}
+  />
+)}
         <div className="form-group">
-          <label>Justification</label>
+          <label>Upload File</label><br/>
+          <input type="file" onChange={handleFileChange} />
+          {attachment && <span>{attachment}</span>}
+        </div>
+      </div>
+      {/* Right Column */}
+      <div className="right-column">
+        <div className="calendar-container">
+          <Calendar
+            value={calendarValue}
+            onValueChanged={handleCalendarValueChange}
+            selectionMode={selectionMode}
+            width="100%"
+          />
+        </div>
+      </div>
+    </div>
+    <div className="form-group">
+          <label>Explanation</label>
           <textarea
-            rows="3"
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
-            className="form-control"
           />
         </div>
-        <div className="form-group">
-          <Button className='form-buttons1 '
-            text="Soumettre"
-           
-            stylingMode="contained"
-            useSubmitBehavior={true}
-          />
-          <Button className='form-buttons2'
-            text="Effacer"
-           
-            onClick={onClearButtonClick}
-          />
-        </div>
-      </form>
+    <div className="form-group">
+      <Button type="submit" className='form-buttons1' text="Soumettre" useSubmitBehavior={true}/>
+      <Button className='form-buttons2' text="Reset" onClick={onClearButtonClick} />
     </div>
-  );
+    {showAlert && formData && (
+        <AlertComponent
+          message="Votre demande a été soumise !"
+          onClose={handleAlertClose}
+          formData={formData}
+          leaveTypes={leaveTypes} 
+          subtypes={subtypes}  
+          onModify={handleModify}  
+        />
+      )}
+  </form>
+ );
 };
-
 export default FormDemande;
